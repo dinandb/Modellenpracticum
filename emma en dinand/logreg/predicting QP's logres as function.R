@@ -1,6 +1,6 @@
 logres <- function(steps,time_steps) {
-  library(dplyr)
-  setwd("C:/Users/exemm/OneDrive/Documenten/3e jaar Radboud Bachelor/Modellen practicum")
+  # library(dplyr)
+  # setwd("C:/Users/exemm/OneDrive/Documenten/3e jaar Radboud Bachelor/Modellen practicum")
   
   simulated_data <- read.csv("M5415_10kn_JONSWAP_3m_10s/output.csv", header = TRUE, sep = ",")
   relevant_sim_data <- simulated_data[, c("t", "z_wf", "phi_wf", "theta_wf", "zeta")]
@@ -10,12 +10,12 @@ logres <- function(steps,time_steps) {
   
   # maak ze numeric
   relevant_sim_data$QP <- QP # voeg de QP (output variabele) toe
-  source("voor emma/heave_split.R")
+  # source("heave_split.R")
   
   relevant_sim_data_final <- generate_prev_heavs(steps, time_steps, relevant_sim_data)
   
   
-  source("voor emma/divide_data.R")
+  # source("divide_data.R")
   
   
   # dit is alle data, met alle nieuwe heave columns

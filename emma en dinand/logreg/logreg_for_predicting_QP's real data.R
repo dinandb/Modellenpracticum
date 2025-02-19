@@ -2,9 +2,9 @@ library(gridExtra)
 library(ggplot2)
 library(readxl)
 library(dplyr)
-setwd("C:/Users/exemm/OneDrive/Documenten/3e jaar Radboud Bachelor/Modellen practicum")
+# setwd("C:/Users/exemm/OneDrive/Documenten/3e jaar Radboud Bachelor/Modellen practicum")
 
-simulated_data <- read.csv("M5415_10kn_JONSWAP_3m_10s/output.csv", header = TRUE, sep = ",")
+simulated_data <- read.csv("assets/M5415_10kn_JONSWAP_3m_10s/output.csv", header = TRUE, sep = ",")
 relevant_sim_data <- simulated_data[, c("t", "z_wf", "phi_wf", "theta_wf", "zeta")]
 relevant_sim_data <- relevant_sim_data[-1, ] # remove the column name
 relevant_sim_data <- data.frame(lapply(relevant_sim_data, as.numeric))  # Convert all columns to numeric
