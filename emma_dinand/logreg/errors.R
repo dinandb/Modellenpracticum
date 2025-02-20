@@ -11,7 +11,7 @@ absolute_error <- function(stps, t_stps) {
   
 }
 
-confusion_matrix_error <- function(stps, t_stps, false_pos, false_neg, bar) {
+confusion_matrix_error <- function(stps, t_stps, false_pos_weight, false_neg_weight, bar) {
   
   new_data <- logres(stps, t_stps)
  
@@ -19,10 +19,10 @@ confusion_matrix_error <- function(stps, t_stps, false_pos, false_neg, bar) {
   for (i in 1:length(new_data$Probability)) {
     if (new_data$Probability[i]>=bar && new_data$QP[i] ==0)
     {
-      error = error + false_pos}
+      error = error + false_pos_weight}
     if (new_data$Probability[i]<bar && new_data$QP[i] ==1)
     {
-      error = error + false_neg}
+      error = error + false_neg_weight}
     
   }
   

@@ -2,11 +2,8 @@ logres <- function(steps,time_steps) {
   # library(dplyr)
   # setwd("C:/Users/exemm/OneDrive/Documenten/3e jaar Radboud Bachelor/Modellen practicum")
   
-  simulated_data <- read.csv("M5415_10kn_JONSWAP_3m_10s/output.csv", header = TRUE, sep = ",")
-  relevant_sim_data <- simulated_data[, c("t", "z_wf", "phi_wf", "theta_wf", "zeta")]
   
-  relevant_sim_data <- relevant_sim_data[-1, ] # remove the column name
-  relevant_sim_data <- data.frame(lapply(relevant_sim_data, as.numeric))  # Convert all columns to numeric
+
   
   # maak ze numeric
   relevant_sim_data$QP <- QP # voeg de QP (output variabele) toe
@@ -25,8 +22,8 @@ logres <- function(steps,time_steps) {
   relevant_sim_data_final_train <- relevant_sim_data_final_splitted$train_data
   relevant_sim_data_final_eval <- relevant_sim_data_final_splitted$val
   relevant_sim_data_final_test <- relevant_sim_data_final_splitted$test
-  
-  source("voor emma/DetectQP.R")
+  # 
+  # source("voor emma/DetectQP.R")
   
   
   # Generate the heave variable names dynamically (heave1, heave2, ..., heaveN)
@@ -38,11 +35,12 @@ logres <- function(steps,time_steps) {
   # Convert the formula string to an actual formula object
   formula <- as.formula(formula_str)
   
-  logreg_model <- glm(formula,
-                      data = relevant_sim_data_final_train[is.na(relevant_sim_data_final_train$heave5) != TRUE,], family = binomial)
+  last_heave <- paste0("heave", steps)
+  
+  logreg_model <- glm(formula, data = relevant_sim_data_final_train[!is.na(relevant_sim_data_final_train[[last_heave]]),], family = binomial)
   
   #evaluation data into trained model
-  new_data = relevant_sim_data_final_eval[is.na(relevant_sim_data_final_eval$heave5) != TRUE,]
+  new_data = relevant_sim_data_final_eval[is.na(relevant_sim_data_final_eval[[last_heave]]) != TRUE,]
   
   new_data$Probability <- predict(logreg_model, newdata = new_data, type = "response")
   
