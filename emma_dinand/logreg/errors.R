@@ -1,53 +1,79 @@
 absolute_error <- function(stps, t_stps) {
   
-  new_data <- logres(stps, t_stps)
+  predicted_probs_QPs <- logreg_predict_eval(stps, t_stps)
+  predicted_probs = predicted_probs_QPs$probs
+  QP_eval = predicted_probs_QPs$QPs
+  # hier moeten de probs en de echte qps nog uitgehaald worden
   
   error = 0
-  for (i in 1:length(new_data$Probability)) {
-    error = error + abs(new_data$Probability[i]-new_data$QP[i])
+  for (i in 1:length(predicted_probs)) {
+    error = error + abs(predicted_probs[[i]]-QP_eval)
   }
   
-  return (error/length(new_data$Probability))
+  return (error/length(predicted_probs))
   
 }
 
 confusion_matrix_error <- function(stps, t_stps, false_pos_weight, false_neg_weight, bar) {
   
-  new_data <- logres(stps, t_stps)
- 
-  error = 0
-  for (i in 1:length(new_data$Probability)) {
-    if (new_data$Probability[i]>=bar && new_data$QP[i] ==0)
-    {
-      error = error + false_pos_weight}
-    if (new_data$Probability[i]<bar && new_data$QP[i] ==1)
-    {
-      error = error + false_neg_weight}
-    
-  }
+  predicted_probs_QPs <- logreg_predict_eval(stps, t_stps)
+  predicted_probs = predicted_probs_QPs$probs
+  QP_eval = predicted_probs_QPs$QPs
   
-  return (error/length(new_data$Probability))
+  # indices <- seq(1, length(predicted_probs))
+  FP <- 0
+  FN <- 0
+  for (i in (1:length(predicted_probs))) {
+    if (predicted_probs[[i]] >= bar & QP_eval[i] == 0) {
+      FP <- FP + 1
+    }
+    if (predicted_probs[[i]] < bar & QP_eval[i] == 1) {
+      FN <- FN + 1
+    }
+  }
+  # false_pos_indices <- (predicted_probs >= bar) & (predicted_probs == 0)
+  # false_neg_indices <- (predicted_probs < bar) & (predicted_probs == 1)
+  # FP = sum(false_pos_indices)
+  # FN = sum(false_neg_indices)
+  # print("IPV DE GETALLEN HIERONDER IN CONFUSION MATRIX ERROR IETS VAN TABLE.COUNT")
+  TP = length(QP_eval[QP_eval==1]) - FN
+  TN = length(QP_eval[QP_eval==0]) - FP
+  
+  error = FP*false_pos_weight + FN * false_neg_weight
+  
+  confusion_matrix <- matrix(c(TP, FP, FN, TN), nrow = 2, byrow = TRUE)
+  colnames(confusion_matrix) <- c("Predicted 1", "Predicted 0")
+  rownames(confusion_matrix) <- c("Actual 1", "Actual 0")
+  
+  
+  print(confusion_matrix)
+  
+  
+  return (error/length(predicted_probs))
   
 }
 
 
 accuracy <- function(stps, t_stps, bar) {
   
-  new_data <- logres(stps, t_stps)
+  predicted_probs_QPs <- logreg_predict_eval(stps, t_stps)
+  predicted_probs = predicted_probs_QPs$probs
+  # print(predicted_probs)
+  QP_eval = predicted_probs_QPs$QPs
+  # print(QP_eval)
   
   count = 0
-  for (i in 1:length(new_data$Probability)) {
-    if (new_data$Probability[i]>=bar && new_data$QP[i] ==1)
+    if (predicted_probs[[i]]>=bar && QP_eval[i] ==1)
     {
       count = count +1
     }
-    if (new_data$Probability[i]<bar && new_data$QP[i] ==0)
+    if (predicted_probs[[i]]<bar && QP_eval[i] ==0)
     {
-      count = count +1}
+      count = count +1
     
     }
   
-  return (count/length(new_data$Probability))
+  return (count/length(predicted_probs))
   
 }
 
