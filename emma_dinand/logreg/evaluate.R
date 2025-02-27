@@ -23,7 +23,7 @@ find_min_confusion_matrix_error <- function() {
 
 weight_FN <- .2
 weight_FP <- 1.8
-min_conf <- c(confusion_matrix_error(1,1, weight_FP, weight_FN, 0.4), 1, 1, weight_FP, weight_FN, 0.4)
+min_conf <- c(confusion_matrix_error(1,1, weight_FP, weight_FN, 0.4), 1, 1, weight_FP, weight_FN, 0.1)
 for(amount_time_steps in seq(1,4, by = 1))
 {
   print(amount_time_steps)
@@ -31,7 +31,7 @@ for(amount_time_steps in seq(1,4, by = 1))
   {
     for (threshold in seq(0.1, 0.95, by = 0.05))
     {
-      new_error = confusion_matrix_error(amount_time_steps, step_size, 5, 1, threshold)
+      new_error = confusion_matrix_error(amount_time_steps, step_size, weight_FP, weight_FN, threshold)
       if (new_error<min_conf[1])
       {
         min_conf <- c(new_error, amount_time_steps, step_size, weight_FP, weight_FN, threshold)

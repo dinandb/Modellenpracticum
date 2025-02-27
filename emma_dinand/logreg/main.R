@@ -18,7 +18,7 @@ main <- function() {
   
   find_min_confusion_matrix_error()
   
-  
+  #0.0 2.0 1.0 1.8 0.2 0.1
   
 }
 
