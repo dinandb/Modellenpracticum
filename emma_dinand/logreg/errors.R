@@ -7,7 +7,7 @@ absolute_error <- function(stps, t_stps) {
   
   error = 0
   for (i in 1:length(predicted_probs)) {
-    error = error + abs(predicted_probs[[i]]-QP_eval)
+    error = error + abs(predicted_probs[[i]]-QP_eval[i])
   }
   
   return (error/length(predicted_probs))

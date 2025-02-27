@@ -32,7 +32,7 @@ while(i < length(time))
 {
   if(heave[i] < heaveThres) {  #} && roll[i] < rollThres) {
     j <- 0
-    print(i+j)
+    # print(i+j)
     while((i+j) < length(heave) & heave[i + j] < heaveThres)# && roll[i + j] < rollThres && i + j < length(time))
     {
       j <- j + 1

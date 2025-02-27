@@ -13,3 +13,4 @@ source("emma_dinand/logreg/evaluate.R")
 
 #met threshodl spelen en kjiken of het klopt de fps en tps enzo
 #smote adden
+
