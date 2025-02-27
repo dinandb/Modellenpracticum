@@ -4,17 +4,17 @@
 # library(dplyr)
 # setwd("C:/Users/exemm/OneDrive/Documenten/3e jaar Radboud Bachelor/Modellen practicum")
 
-# simulated_data <- read.csv("M5415_10kn_JONSWAP_3m_10s/output.csv", header = TRUE, sep = ",")
-# relevant_sim_data <- simulated_data[, c("t", "z_wf", "phi_wf", "theta_wf", "zeta")]
-# relevant_sim_data <- relevant_sim_data[-1, ] # remove the column name
-# relevant_sim_data <- data.frame(lapply(relevant_sim_data, as.numeric))  # Convert all columns to numeric
+ simulated_data <- read.csv("M5415_10kn_JONSWAP_3m_10s/output.csv", header = TRUE, sep = ",")
+ relevant_sim_data <- simulated_data[, c("t", "z_wf", "phi_wf", "theta_wf", "zeta")]
+ relevant_sim_data <- relevant_sim_data[-1, ] # remove the column name
+ relevant_sim_data <- data.frame(lapply(relevant_sim_data, as.numeric))  # Convert all columns to numeric
 
 
-Data <- relevant_sim_data #in logreg_for_predicting_QP's.R
+data <- relevant_sim_data #in logreg_for_predicting_QP's.R
 #Data <- data.frame(lapply(Data, as.numeric))  # Convert all columns to numeric
-time <- (Data$t)
-heave <- (Data$z_wf)
-roll <- (Data$phi_wf)
+time <- (data$t)
+heave <- (data$z_wf)
+roll <- (data$phi_wf)
 
 heaveThres <- 0.5
 rollThres <- 0.02

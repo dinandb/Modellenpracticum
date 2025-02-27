@@ -2,9 +2,10 @@
 
 
 
-generate_prev_heavs <- function(steps, time_step, data) {
+
+generate_prev_heavs <- function(steps, time_steps, data) {
   n = length(data$t)
-  
+
   relevant_sim_data_splitted <- data
   #print(relevant_sim_data_splitted)
   for (i in steps:1) {
