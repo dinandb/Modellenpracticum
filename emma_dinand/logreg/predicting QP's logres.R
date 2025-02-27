@@ -23,6 +23,10 @@ logreg_predict_eval <- function(steps,time_steps) {
   #evaluation data into trained model
   new_data = relevant_sim_data_final_eval[is.na(relevant_sim_data_final_eval[[last_heave]]) != TRUE,]
   
+  
+  
+  
+  # hier gaat het mis
   probs <- predict(logreg_model, newdata = new_data, type = "response")
   # print("probs")
   # print(head(probs))

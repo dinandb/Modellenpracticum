@@ -30,9 +30,10 @@ num_start_QP <- 4
 i <- 1
 while(i < length(time)) 
 {
-  if(heave[i] < heaveThres && roll[i] < rollThres) {
+  if(heave[i] < heaveThres) {  #} && roll[i] < rollThres) {
     j <- 0
-    while(heave[i + j] < heaveThres && roll[i + j] < rollThres && i + j < length(time))
+    print(i+j)
+    while((i+j) < length(heave) & heave[i + j] < heaveThres)# && roll[i + j] < rollThres && i + j < length(time))
     {
       j <- j + 1
     }
