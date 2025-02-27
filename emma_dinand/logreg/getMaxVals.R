@@ -14,11 +14,11 @@ getMaxVals <- function(data, colname) {
       maxvals <- c(maxvals, data[[colname]][i])
       # new_data <- c(new_data, data[i,])
       indices <- c(indices, i)
-      #dit werkt wel, maar de hele naamgeving is fucked dus niet echt
+      
       
     }
     else if (data$QP[i]) {
-      print("added bc QP = 1")
+      # print("added bc QP = 1")
       maxvals <- c(maxvals, data[[colname]][i])
       # new_data <- c(new_data, data[i,])
       indices <- c(indices, i)
