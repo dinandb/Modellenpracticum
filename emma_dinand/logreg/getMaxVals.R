@@ -10,7 +10,9 @@ getMaxVals <- function(data, colname) {
   
   for (i in 2:(length(data[[colname]])-1)) {
     # if (data[[colname]][i-1] < data[[colname]][i] & data[[colname]][i] > data[[colname]][i+1]) {
-    if (abs(data[[colname]][i-1]) < abs(data[[colname]][i]) & abs(data[[colname]][i]) > abs(data[[colname]][i+1])) {
+    # if (abs(data[[colname]][i-1]) < abs(data[[colname]][i]) & abs(data[[colname]][i]) > abs(data[[colname]][i+1])) {
+    if ((data[[colname]][i-1]) < (data[[colname]][i]) & (data[[colname]][i]) > (data[[colname]][i+1])
+        | (data[[colname]][i-1]) > (data[[colname]][i]) & (data[[colname]][i]) < (data[[colname]][i+1])) {
       maxvals <- c(maxvals, data[[colname]][i])
       # new_data <- c(new_data, data[i,])
       indices <- c(indices, i)
