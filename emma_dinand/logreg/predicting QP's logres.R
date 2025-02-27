@@ -1,6 +1,6 @@
-logreg_predict_eval <- function(steps,time_steps) {
+logreg_predict_eval <- function(steps,time_step) {
   
-  relevant_sim_data_final <- generate_prev_heavs(steps, time_steps, relevant_sim_data)
+  relevant_sim_data_final <- generate_prev_heavs(steps, time_step, relevant_sim_data)
 
   relevant_sim_data_final_splitted <- split_data(relevant_sim_data_final)
   relevant_sim_data_final_train <- relevant_sim_data_final_splitted$train_data

@@ -1,6 +1,6 @@
-absolute_error <- function(stps, t_stps) {
+absolute_error <- function(stps, t_stp) {
   
-  predicted_probs_QPs <- logreg_predict_eval(stps, t_stps)
+  predicted_probs_QPs <- logreg_predict_eval(stps, t_stp)
   predicted_probs = predicted_probs_QPs$probs
   QP_eval = predicted_probs_QPs$QPs
   # hier moeten de probs en de echte qps nog uitgehaald worden
@@ -14,9 +14,9 @@ absolute_error <- function(stps, t_stps) {
   
 }
 
-confusion_matrix_error <- function(stps, t_stps, false_pos_weight, false_neg_weight, bar) {
+confusion_matrix_error <- function(stps, t_stp, false_pos_weight, false_neg_weight, bar) {
   
-  predicted_probs_QPs <- logreg_predict_eval(stps, t_stps)
+  predicted_probs_QPs <- logreg_predict_eval(stps, t_stp)
   predicted_probs = predicted_probs_QPs$probs
   QP_eval = predicted_probs_QPs$QPs
   
@@ -41,7 +41,7 @@ confusion_matrix_error <- function(stps, t_stps, false_pos_weight, false_neg_wei
   
   error = FP*false_pos_weight + FN * false_neg_weight
   
-  confusion_matrix <- matrix(c(TP, FP, FN, TN), nrow = 2, byrow = TRUE)
+  confusion_matrix <- matrix(c(TP, FN, FP, TN), nrow = 2, byrow = TRUE)
   colnames(confusion_matrix) <- c("Predicted 1", "Predicted 0")
   rownames(confusion_matrix) <- c("Actual 1", "Actual 0")
   
@@ -54,9 +54,9 @@ confusion_matrix_error <- function(stps, t_stps, false_pos_weight, false_neg_wei
 }
 
 
-accuracy <- function(stps, t_stps, bar) {
+accuracy <- function(stps, t_stp, bar) {
   
-  predicted_probs_QPs <- logreg_predict_eval(stps, t_stps)
+  predicted_probs_QPs <- logreg_predict_eval(stps, t_stp)
   predicted_probs = predicted_probs_QPs$probs
   # print(predicted_probs)
   QP_eval = predicted_probs_QPs$QPs

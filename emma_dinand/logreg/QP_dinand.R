@@ -24,7 +24,7 @@ QP <- c(0)
 QPstart <- c(0)
 QPend <- c(0)
 
-num_start_QP <- 4
+num_start_QP <- 3
 
 
 i <- 1
