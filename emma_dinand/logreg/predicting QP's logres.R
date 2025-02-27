@@ -12,6 +12,7 @@ logreg_predict_eval <- function(steps,time_step) {
   
   # Create a formula for the glm model dynamically
   formula_str <- paste("QP ~", paste(heave_vars, collapse = " + "), "+ z_wf")
+  # formula_str <- paste("QP ~", paste(heave_vars, collapse = " + "))
   
   # Convert the formula string to an actual formula object
   formula <- as.formula(formula_str)
@@ -19,7 +20,7 @@ logreg_predict_eval <- function(steps,time_step) {
   last_heave <- paste0("heave", steps)
   
   logreg_model <- glm(formula, data = relevant_sim_data_final_train[!is.na(relevant_sim_data_final_train[[last_heave]]),], family = binomial)
-  
+  print(summary(logreg_model))
   #evaluation data into trained model
   new_data = relevant_sim_data_final_eval[is.na(relevant_sim_data_final_eval[[last_heave]]) != TRUE,]
   

@@ -18,6 +18,7 @@ source("emma_dinand/logreg/getMaxVals.R")
 # source("emma_dinand/logreg/QP_emma.R")
 
 relevant_sim_data$QP <- QP # voeg de QP (output variabele) toe
+# relevant_sim_data$z_wf <- abs(relevant_sim_data$z_wf)
 relevant_sim_data_backup <- relevant_sim_data
 relevant_sim_data <- getMaxVals(relevant_sim_data_backup, "z_wf")
 

@@ -10,7 +10,7 @@
 # relevant_sim_data <- data.frame(lapply(relevant_sim_data, as.numeric))  # Convert all columns to numeric
 
 
-Data <- relevant_sim_data #in logreg_for_predicting_QP's.R
+Data <- relevant_sim_data_backup #in logreg_for_predicting_QP's.R
 #Data <- data.frame(lapply(Data, as.numeric))  # Convert all columns to numeric
 time <- (Data$t)
 heave <- (Data$z_wf)
@@ -55,6 +55,30 @@ while(i < length(time))
     QP <- append(QP,FALSE)
     i <- i + 1
   }
+}
+
+moveQP <- function(QP, amountToMove = 5) {
+  amountToAdd <- amountToMove - num_start_QP
+  
+  # remove first 5 of the vector, add 5 zeros to the end.
+  
+  # then go through the vector, each last 1 we have, change the next amountToAdd 0's to 1
+  
+  QP <- QP[(amountToMove+1):length(QP)]
+  QP <- c(QP, rep(0,amountToMove))
+  toSkip = 0
+  for (i in 1:(length(QP)-1)) {
+    if (QP[i] == 1 & QP[i+1] == 0 & toSkip <= 0) {
+      for (j in 1:amountToAdd) {
+        QP[i+j] = 1
+      }
+      toSkip = amountToAdd
+    }
+    else {
+      toSkip = toSkip - 1
+    }
+  }
+  return(QP)
 }
 
 

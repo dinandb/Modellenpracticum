@@ -14,7 +14,7 @@ absolute_error <- function(stps, t_stp) {
   
 }
 
-confusion_matrix_error <- function(stps, t_stp, false_pos_weight, false_neg_weight, bar) {
+confusion_matrix_error <- function(stps=1, t_stp=1, false_pos_weight=1.8, false_neg_weight=0.2, bar=0.5) {
   
   predicted_probs_QPs <- logreg_predict_eval(stps, t_stp)
   predicted_probs = predicted_probs_QPs$probs
@@ -49,7 +49,7 @@ confusion_matrix_error <- function(stps, t_stp, false_pos_weight, false_neg_weig
   print(confusion_matrix)
   
   
-  return (error/length(predicted_probs))
+  return (error)
   
 }
 

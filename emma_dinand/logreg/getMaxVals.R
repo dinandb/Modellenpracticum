@@ -1,6 +1,6 @@
 
 #rename deze naar iets van data mining
-getMaxVals <- function(data, colname) {
+getMaxVals <- function(data, colname="z_wf") {
   # colname moet een string zijn
   
   maxvals <- c()
@@ -19,12 +19,12 @@ getMaxVals <- function(data, colname) {
       
       
     }
-    else if (data$QP[i]) {
-      # print("added bc QP = 1")
-      maxvals <- c(maxvals, data[[colname]][i])
-      # new_data <- c(new_data, data[i,])
-      indices <- c(indices, i)
-    }
+    # else if (data$QP[i]) {
+    #   # print("added bc QP = 1")
+    #   maxvals <- c(maxvals, data[[colname]][i])
+    #   # new_data <- c(new_data, data[i,])
+    #   indices <- c(indices, i)
+    # }
   }
   return(data[indices,])
   
