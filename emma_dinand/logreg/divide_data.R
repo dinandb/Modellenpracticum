@@ -9,3 +9,4 @@ split_data <- function(data) {
   # train_data <- QP[1:floor(0.7 * n), ]  # Take the first 70% of the rows
   return (list(train_data=train_data, val=validation_data, test=test_data))
 }
+

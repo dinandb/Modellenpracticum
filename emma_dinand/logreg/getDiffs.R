@@ -24,10 +24,12 @@ getDiffs <- function(data, colname="z_wf", steps=1, power=1)  {
   for (i in steps:1) {
     col_name <- paste0("Derivative #", i, " ^", power)  # Create column name dynamically
 
-    relevant_sim_data_derivatives[[col_name]] <- der0 
+    #relevant_sim_data_derivatives[[col_name]] <- der0 
     
-    relevant_sim_data_derivatives[[col_name]] <- lag(der0, n = i-1, default = NA)  
+    relevant_sim_data_derivatives[[col_name]] <- dplyr::lag(der0, n = i-1, default = NA)  
     
   }
+
   return(relevant_sim_data_derivatives)
 }
+
