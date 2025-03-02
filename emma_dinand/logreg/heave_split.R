@@ -13,7 +13,9 @@ generate_prev_heavs <- function(steps, time_step, data) {
     #print(col_name)
     relevant_sim_data_splitted[[col_name]] <- relevant_sim_data_splitted$z_wf
     
-    relevant_sim_data_splitted[[col_name]] <- lag(relevant_sim_data_splitted$z_wf, n = time_step*i, default = NA)  
+
+    relevant_sim_data_splitted[[col_name]] <- dplyr::lag(relevant_sim_data_splitted$z_wf, n = time_steps*i, default = NA)  
+
     
     
   }
