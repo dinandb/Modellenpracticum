@@ -46,7 +46,7 @@ confusion_matrix_error <- function(stps=1, t_stp=1, false_pos_weight=1.8, false_
   rownames(confusion_matrix) <- c("Actual 1", "Actual 0")
   
   
-  print(confusion_matrix)
+  # print(confusion_matrix)
   
   
   return (error)

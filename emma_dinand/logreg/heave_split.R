@@ -3,7 +3,7 @@
 
 
 
-generate_prev_heavs <- function(steps, time_steps, data) {
+generate_prev_heavs <- function(steps, time_step, data) {
   n = length(data$t)
 
   relevant_sim_data_splitted <- data
@@ -13,7 +13,7 @@ generate_prev_heavs <- function(steps, time_steps, data) {
     #print(col_name)
     relevant_sim_data_splitted[[col_name]] <- relevant_sim_data_splitted$z_wf
     
-    relevant_sim_data_splitted[[col_name]] <- lag(relevant_sim_data_splitted$z_wf, n = time_steps*i, default = NA)  
+    relevant_sim_data_splitted[[col_name]] <- lag(relevant_sim_data_splitted$z_wf, n = time_step*i, default = NA)  
     
     
   }

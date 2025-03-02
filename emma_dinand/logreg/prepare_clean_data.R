@@ -4,7 +4,9 @@ library(readxl)
 library(dplyr)
 # setwd("C:\\Users\\blomd\\Dropbox\\Documenten\\24-25 RU\\Modellenpracticum")
 
-simulated_data <- read.csv("assets/M5415_10kn_JONSWAP_3m_10s/output.csv", header = TRUE, sep = ",")
+# simulated_data <- read.csv("assets/M5415_10kn_JONSWAP_3m_10s/output.csv", header = TRUE, sep = ",")
+
+simulated_data <- read.csv("assets/data_ed_2_clean.csv", header = TRUE, sep = ",")
 
 # deze hierboven aanpassen naar nieuwe data
 

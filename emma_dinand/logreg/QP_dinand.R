@@ -24,7 +24,7 @@ QP <- c(0)
 QPstart <- c(0)
 QPend <- c(0)
 
-num_start_QP <- 3
+num_start_QP <- 2
 
 
 i <- 1
@@ -57,7 +57,7 @@ while(i < length(time))
   }
 }
 
-moveQP <- function(QP, amountToMove = 5) {
+moveQP <- function(QP, amountToMove = 3) {
   amountToAdd <- amountToMove - num_start_QP
   
   # remove first 5 of the vector, add 5 zeros to the end.

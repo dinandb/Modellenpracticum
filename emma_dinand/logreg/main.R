@@ -9,6 +9,8 @@ source("emma_dinand/logreg/errors.R")
 source("emma_dinand/logreg/evaluate.R")
 
 source("emma_dinand/logreg/getMaxVals.R")
+
+source("emma_dinand/logreg/genError.R")
 # source("emma_dinand/logreg/logreg_for_predicting_QP's real data.R")
 
 main <- function() {
@@ -17,6 +19,8 @@ main <- function() {
   # nu evaluate
   
   find_min_confusion_matrix_error()
+  
+  gen_err(1.0, 1.0, 1.8, 0.2, 0.1)
   
   #0.0 2.0 1.0 1.8 0.2 0.1
   
