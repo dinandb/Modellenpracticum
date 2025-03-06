@@ -10,13 +10,14 @@ relevant_sim_data <- relevant_sim_data[-1, ] # remove the column name
 relevant_sim_data <- data.frame(lapply(relevant_sim_data, as.numeric))  # Convert all columns to numeric
 
 
+
 Data <- relevant_sim_data #in logreg_for_predicting_QP's.R
 #Data <- data.frame(lapply(Data, as.numeric))  # Convert all columns to numeric
 time <- (Data$t)
 heave <- (Data$z_wf)
 roll <- (Data$phi_wf)
 
-heaveThres <- 0.5
+heaveThres <- 0.2
 rollThres <- 0.02
 timeThres <- 30
 
@@ -29,9 +30,9 @@ QPend <- c(0)
 i <- 1
 while(i < length(time)) 
 {
-  if(heave[i] < heaveThres && roll[i] < rollThres) {
+  if(abs(heave[i]) < heaveThres){# && roll[i] < rollThres) {
     j <- 0
-    while(heave[i + j] < heaveThres && roll[i + j] < rollThres && i + j < length(time))
+    while((i+j) < length(heave) & abs(heave[i + j]) < heaveThres && roll[i + j] < rollThres && i + j < length(time))
     {
       j <- j + 1
     }
@@ -39,6 +40,7 @@ while(i < length(time))
     {
       QP <- append(QP, rep(TRUE,j-timeThres +1))
       QP <- append(QP, rep(FALSE,timeThres -1))
+      QP[(i-20):i] <- TRUE
       QPstart <- append(QPstart, time[i])
       QPend <- append(QPend, time[i+j])
     }
@@ -54,5 +56,6 @@ while(i < length(time))
     i <- i + 1
   }
 }
+relevant_sim_data$QP = QP
 
 
