@@ -22,7 +22,7 @@ getDiffs <- function(data, colname="z_wf", steps=1, power=1)  {
   der0[1]<- NA
 
   for (i in steps:1) {
-    col_name <- paste0("Derivative #", i, " ^", power)  # Create column name dynamically
+    col_name <- paste0("Derivative", i)  # Create column name dynamically
 
     #relevant_sim_data_derivatives[[col_name]] <- der0 
     
