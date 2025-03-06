@@ -16,7 +16,7 @@ time <- (Data$t)
 heave <- (Data$z_wf)
 roll <- (Data$phi_wf)
 
-heaveThres <- 0.5
+heaveThres <- 0.3
 rollThres <- 0.02
 timeThres <- 30
 
@@ -24,16 +24,17 @@ QP <- c(0)
 QPstart <- c(0)
 QPend <- c(0)
 
-num_start_QP <- 2
+num_start_QP <- 5
 
 
 i <- 1
 while(i < length(time)) 
 {
-  if(heave[i] < heaveThres) {  #} && roll[i] < rollThres) {
+  # print(i)
+  if(abs(heave[i]) < heaveThres) {  #} && roll[i] < rollThres) {
     j <- 0
     # print(i+j)
-    while((i+j) < length(heave) & heave[i + j] < heaveThres)# && roll[i + j] < rollThres && i + j < length(time))
+    while((i+j) < length(heave) & abs(heave[i + j]) < heaveThres)# && roll[i + j] < rollThres && i + j < length(time))
     {
       j <- j + 1
     }
@@ -57,7 +58,7 @@ while(i < length(time))
   }
 }
 
-moveQP <- function(QP, amountToMove = 3) {
+moveQP <- function(QP, amountToMove = 20) {
   amountToAdd <- amountToMove - num_start_QP
   
   # remove first 5 of the vector, add 5 zeros to the end.
