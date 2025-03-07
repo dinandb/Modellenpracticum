@@ -29,9 +29,14 @@ QPend <- c(0)
 i <- 1
 while(i < length(time)) 
 {
-  if(heave[i] < heaveThres && roll[i] < rollThres) {
+
+
+  if(abs(heave[i]) < heaveThres #&& roll[i] < rollThres
+     ) {
     j <- 0
-    while(heave[i + j] < heaveThres && roll[i + j] < rollThres && i + j < length(time))
+    while(i+j < length(time) & abs(heave[i + j]) < heaveThres #&& roll[i + j] < rollThres && i + j < length(time)
+          )
+
     {
       j <- j + 1
     }
