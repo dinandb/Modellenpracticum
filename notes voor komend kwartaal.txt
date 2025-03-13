@@ -1,0 +1,7 @@
+nieuwe QP
+
+testen random forest andere modellen welke params
+
+en verder hoe het generaliseert op nieuwe data
+
+bruikbaarder maken
