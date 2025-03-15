@@ -10,7 +10,7 @@ simulated_data <- read.csv("assets/data_ed_2_clean.csv", header = TRUE, sep = ",
 
 # deze hierboven aanpassen naar nieuwe data
 
-relevant_sim_data <- simulated_data[, c("t", "z_wf")]
+relevant_sim_data <- simulated_data[, c("t", "z_wf", "phi_wf", "theta_wf", "zeta")]
 relevant_sim_data <- relevant_sim_data[-1, ] # remove the column name
 relevant_sim_data <- data.frame(lapply(relevant_sim_data, as.numeric))  # Convert all columns to numeric
 relevant_sim_data_backup <- relevant_sim_data
@@ -22,9 +22,8 @@ source("emma_dinand/logreg/getMaxVals.R")
 relevant_sim_data$QP <- QP # voeg de QP (output variabele) toe
 # relevant_sim_data$z_wf <- abs(relevant_sim_data$z_wf)
 
-relevant_sim_data <- getMaxVals(relevant_sim_data, "z_wf")
-sum(relevant_sim_data$QP)
-
+relevant_sim_data_backup <- relevant_sim_data
+#relevant_sim_data <- getMaxVals(relevant_sim_data_backup, "z_wf")
 
 
 

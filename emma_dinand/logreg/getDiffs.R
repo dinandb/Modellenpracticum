@@ -33,7 +33,7 @@ getDiffs <- function(data, colname="z_wf", steps=1, power=1)  {
   return(relevant_sim_data_derivatives)
 }
 
-getDiffs2 <- function(data, colname="z_wf", highest_p=1)  {
+getDiffs2 <- function(data, colname="z_wf", higest_p=1)  {
   
   n = length(data$t)
   

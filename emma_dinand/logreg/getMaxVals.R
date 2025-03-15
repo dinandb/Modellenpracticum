@@ -14,7 +14,7 @@ getMaxVals <- function(data, colname="z_wf") {
         | ((data[[colname]][i-2])<(data[[colname]][i-1]) & (data[[colname]][i-1])<(data[[colname]][i]) 
         & (data[[colname]][i])>(data[[colname]][i+1]) & (data[[colname]][i+1])>(data[[colname]][i+2]))
     ){
-      # maxvals <- c(maxvals, data[[colname]][i])
+      maxvals <- c(maxvals, data[[colname]][i])
       indices <- c(indices, i)
     }
 

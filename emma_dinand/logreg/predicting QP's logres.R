@@ -20,9 +20,10 @@ logreg_predict_eval <- function(steps,time_step) {
   formula <- as.formula(formula_str)
   
   last_heave <- paste0("heave", steps)
+  # print(formula)
   
   logreg_model <- glm(formula, data = relevant_sim_data_final_train[!is.na(relevant_sim_data_final_train[[last_heave]]),], family = binomial)
-  # print(summary(logreg_model))
+  print(summary(logreg_model))
   #evaluation data into trained model
   new_data = relevant_sim_data_final_eval[is.na(relevant_sim_data_final_eval[[last_heave]]) != TRUE,]
   
