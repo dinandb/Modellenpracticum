@@ -128,6 +128,7 @@ async def stream_data(websocket: WebSocket):
     try:
         while True:
             await asyncio.sleep(.1)  # Send data every second
+            # hier kan je de timer aanpassen ook
             data_point = data_generator.generate_data_point()
             # hier dus aanpassen dat hij data van de pickle file haalt en ook classificeert
             # en dan de data_point["is_safe"] en data_point["amount_to_go_for_safe"] aanpassen
