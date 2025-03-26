@@ -275,7 +275,7 @@ def main():
     
 
     print(len(heave_data))
-    X = create_qp_labeled_dataset(heave_data, i=1, new = True)
+    X = create_qp_labeled_dataset(heave_data[:2000], i=1, new = True)
     print(f"sum before trimming: {sum(y)    }")
     # y = y + [False]*(len(X)-len(y))
     y  = y[:len(X)]
