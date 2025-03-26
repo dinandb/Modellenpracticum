@@ -1,6 +1,7 @@
-/assets
+assets
 .RData
 .Rhistory
 /emma_dinand/.RData
 onzin
 .conda
+__pycache__
