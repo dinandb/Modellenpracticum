@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Streaming Output</title>
+</head>
+<body>
+    <h1>Flask Streaming Example</h1>
+    <button onclick="startStream()">Run Script</button>
+    <pre id="output"></pre> <!-- Display the stream -->
+
+    <script>
+        function startStream() {
+            document.getElementById("output").innerText = "";  // Clear previous output
+            const eventSource = new EventSource('/run-script');
+
+            eventSource.onmessage = function(event) {
+                document.getElementById("output").innerText += event.data + "\n";
+            };
+
+            eventSource.onerror = function() {
+                eventSource.close(); // Stop when done
+            };
+        }
+    </script>
+</body>
+</html>
+    
+    The HTML template is simple. It contains a button that triggers the JavaScript function  startStream()  when clicked. The function creates an  EventSource  object that listens for messages from the server. When a message is received, it is appended to the  <pre>  element with the ID  output . 
+    The server-side code is a bit more complex. It uses the  StreamingResponse  class to stream the output of the script to the client. 
+    # app.py

@@ -275,7 +275,11 @@ def main():
     
 
     print(len(heave_data))
+<<<<<<< HEAD
     X = create_qp_labeled_dataset(heave_data[:2000], i=1, new = True)
+=======
+    X = create_qp_labeled_dataset(heave_data[6000:12000], i=1, new = True)
+>>>>>>> 9342004f610d1e291faa8043d46017397a5404eb
     print(f"sum before trimming: {sum(y)    }")
     # y = y + [False]*(len(X)-len(y))
     y  = y[:len(X)]
@@ -299,7 +303,7 @@ def main():
         print("Processed data saved to pickle.")
 
 
-    quit()
+    # quit()
 
     
     # nog testen op de andere data

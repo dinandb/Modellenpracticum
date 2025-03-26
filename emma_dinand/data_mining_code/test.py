@@ -1,3 +1,13 @@
-a = [1,2,3,4,5,6,7,8,9,10]
+import datetime
+import time
 
-print(a[:3])
+def run_script():
+
+    return f"Script ran at {datetime.datetime.now()}"
+
+def data_source():
+    i = 0
+    while True:
+        yield i  # Simulating streaming data
+        i += 1
+        time.sleep(0.1)
