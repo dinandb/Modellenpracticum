@@ -6,6 +6,8 @@ import time
 from datetime import datetime
 from typing import List, Dict, Any
 
+import webappdriver
+
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -125,17 +127,16 @@ async def stream_data(websocket: WebSocket):
     # hier: laad van de pickle file de data in
     # en laad de classificatie van de hele data (van de definitie, niet model)
     # en laad het model in
+    webappdriver.init()
+    
     try:
+        data_generator = webappdriver.get_data_point()
         while True:
-            await asyncio.sleep(.1)  # Send data every second
+            await asyncio.sleep(.5)  # Send data every second
             # hier kan je de timer aanpassen ook
-            data_point = data_generator.generate_data_point()
-            # hier dus aanpassen dat hij data van de pickle file haalt en ook classificeert
-            # en dan de data_point["is_safe"] en data_point["amount_to_go_for_safe"] aanpassen
-        
-            # amount to go for safe moet berekent worden door de labeling (waar zijn we nu, waar is de eerste QP -> verschil)
-            # format: {"name": datetime.now().strftime("%H:%M:%S"), "value": heave_waard, "timestamp": datetime.now().isoformat(), "is_safe": Bool, "amount_to_go_for_safe": Int}
-
+            # data_point = {"value": round(10, 2), "is_safe": False, "amount_to_go_for_safe": 0}
+            data_point = next(data_generator)
+            
             # mogelijke extensie: heave_waarde -> PCA of meerdere grafieken van heave en rol en wat er nodig is
 
         

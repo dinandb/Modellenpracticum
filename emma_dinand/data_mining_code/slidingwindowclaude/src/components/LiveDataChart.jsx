@@ -29,9 +29,9 @@ const LiveDataChart = () => {
         
         setData(prevData => {
           const newData = [...prevData, {
-            timestamp: new Date().toLocaleTimeString(),
+
             value: parsedData.value,
-            name: parsedData.name || `Point ${prevData.length}`,
+
             is_safe: parsedData.is_safe || false,
             amount_to_go_for_safe: parsedData.amount_to_go_for_safe || 0
           }];
