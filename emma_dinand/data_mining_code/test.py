@@ -1,13 +1,12 @@
-import datetime
-import time
+from sklearn.decomposition import PCA
+import numpy as np
 
-def run_script():
+# 6 vectors, each with 4 features
+X = np.random.rand(6, 4)
 
-    return f"Script ran at {datetime.datetime.now()}"
+# PCA with all possible components (max = 4 in this case)
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X)
 
-def data_source():
-    i = 0
-    while True:
-        yield i  # Simulating streaming data
-        i += 1
-        time.sleep(0.1)
+print("Original shape:", X.shape)
+print("Transformed shape:", X_pca.shape)

@@ -6,6 +6,9 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import classification_report
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 import pickle
+from sklearn.decomposition import PCA
+
+
 
 from sklearn.tree import DecisionTreeClassifier
 import data_frame_build as dfb
@@ -133,10 +136,6 @@ def create_qp_labeled_dataset_faster(data, dataset_id, new = False):
         #         features.extend([[extrema.iloc[i]['z_wf'], extrema.iloc[i+1]['z_wf'], extrema.iloc[i+2]['z_wf']]]*(extrema_indices[i+3]-extrema_indices[i+2]))
         #     else:
         #         features.extend([[extrema.iloc[i]['z_wf'], extrema.iloc[i+1]['z_wf'], extrema.iloc[i+2]['z_wf']]]*(len(data)-extrema_indices[i+2]))
-        with pd.option_context('display.max_rows', None):    
-            print(f"first 100 heave values: {data['z_wf'][:200]}")
-            print(f"first 100 sway values: {data['y_wf'][:200]}")
-
 
 
 
@@ -168,7 +167,7 @@ def create_qp_labeled_dataset_faster(data, dataset_id, new = False):
             offset_dict[var] = cur_offset
             if cur_offset > offset:
                 offset = extrema_indices_dict[var][NO_EXTREMA_LOOKBACK-1] + 2
-            print(f"offset {offset}")
+            # print(f"cur offset {cur_offset}, var = {var}")
 
         # let op! rekening houden met verschillende offsets. als er niet goed rekening mee gehouden wordt 
         # dan kan de plaatsing van de features boven elkaar misschien niet kloppen. 
@@ -192,22 +191,30 @@ def create_qp_labeled_dataset_faster(data, dataset_id, new = False):
                                     (len(data) - extrema_indices[i+2]))
                     
         # now, loop over all features_dict and remove the first offset - offset_dict[var] values from each list in features_dict[var]
-        # for var, col in var_map.items():
-        #     offset_var = offset_dict[var]
-        #     print(f"removing first {offset - offset_var} values from {var}")
-        #     features_dict[var] = features_dict[var][offset - offset_var:]
-
-        print(features_dict["heave"][:10])
-        print(features_dict["sway"][:10])
-        quit()
-        # de extrema extracten gaat iig goed.
-
+        for var, col in var_map.items():
+            offset_var = offset_dict[var]
+            # print(f"removing first {offset - offset_var} values from {var}")
+            features_dict[var] = features_dict[var][offset - offset_var:]
+    
+        # now, combine all features_dict into one list of features
+        features = []
+        for i in range(len(features_dict["heave"])):
+            features.append([features_dict["heave"][i][0], features_dict["heave"][i][1], features_dict["heave"][i][2],
+                             features_dict["sway"][i][0], features_dict["sway"][i][1], features_dict["sway"][i][2],
+                             features_dict["surge"][i][0], features_dict["surge"][i][1], features_dict["surge"][i][2],
+                             features_dict["yaw"][i][0], features_dict["yaw"][i][1], features_dict["yaw"][i][2],
+                             features_dict["roll"][i][0], features_dict["roll"][i][1], features_dict["roll"][i][2],
+                             features_dict["pitch"][i][0], features_dict["pitch"][i][1], features_dict["pitch"][i][2]])
 
         if False:
             print(f"len features {len(features)}")
             print(f"amount that did not get features = {len(data['z_wf']) - len(features)}")
             # ^ looking good
             print(f"offset (should be equal to above ? ) = {offset}")
+        print(f"shape features before PCA = {np.array(features).shape}")
+        pca = PCA(n_components=0.95)
+        features = pca.fit_transform(features)
+        print(f"shape features after PCA = {features.shape}")
 
         save_processed_data((features, offset), pickle_file_path)
         print(f"Processed features saved to pickle. id={dataset_id}")
@@ -463,7 +470,7 @@ def init(to_log=True,mark_first=True,mark_second=True):
 
     
     if X is not None:
-        y  = y[start_index1+offset1:stop_index1+2] # 100 is lookback window
+        y  = y[start_index1+offset1:stop_index1+2]
     if X2 is not None:
         y2 = y2[start_index2+offset2:stop_index2+2]
     if X3 is not None:
@@ -474,18 +481,9 @@ def init(to_log=True,mark_first=True,mark_second=True):
 def model_train(X, y, id=1, new = False):
     pickle_model_path = f'slidingwindowclaudebackend/pickle_saves/modellen/model{str(id)}.pkl'
 
-    
-    for i in range(len(X)):
-        if not len(X[i]) == 3:
-            print("ALERT: X[i] is not 3")
-            print(f"X[i] {X[i]}")
-            print(f"y[i] {y[i]}")
-            
-            
-            
+
     
     
-    # quit()
     try:
         # Try to load the data if it's already saved
         if new:
@@ -494,8 +492,9 @@ def model_train(X, y, id=1, new = False):
         print("Loaded model from pickle.")
     except FileNotFoundError:
         # If the pickle file doesn't exist, process the data and save it
-
+        print("going to train model")
         model, scaler, X_test, y_test = train_qp_predictor(X, y)
+        print("Trained model.")
         save_processed_data((model, scaler, X_test, y_test), pickle_model_path)
         print("Processed model saved to pickle.")
 
@@ -512,7 +511,7 @@ def main():
     
 
 
-    model, scaler, X_test, y_test = model_train(X3, y3, id = 3, new = False)
+    model, scaler, X_test, y_test = model_train(X3, y3, id = 3, new = True)
     # quit()
     
 
