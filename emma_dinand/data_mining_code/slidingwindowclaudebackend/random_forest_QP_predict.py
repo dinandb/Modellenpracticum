@@ -10,6 +10,10 @@ from sklearn.decomposition import PCA
 
 
 
+pd.set_option('display.max_rows', None)
+# Now write your code that displays DataFrames
+
+
 from sklearn.tree import DecisionTreeClassifier
 import data_frame_build as dfb
 from extras import load_processed_data, save_processed_data, get_only_max_vals, get_only_max_vals_vector
@@ -150,6 +154,9 @@ def create_qp_labeled_dataset_faster(data, dataset_id, new = False):
             "roll": "phi_wf",
             "pitch": "theta_wf"
         }
+        var_map_heave = {
+            "heave": "z_wf",
+        }
     
     
         extrema_dict = {}
@@ -167,7 +174,7 @@ def create_qp_labeled_dataset_faster(data, dataset_id, new = False):
             offset_dict[var] = cur_offset
             if cur_offset > offset:
                 offset = extrema_indices_dict[var][NO_EXTREMA_LOOKBACK-1] + 2
-            # print(f"cur offset {cur_offset}, var = {var}")
+            print(f"cur offset {cur_offset}, var = {var}")
 
         # let op! rekening houden met verschillende offsets. als er niet goed rekening mee gehouden wordt 
         # dan kan de plaatsing van de features boven elkaar misschien niet kloppen. 
@@ -197,24 +204,28 @@ def create_qp_labeled_dataset_faster(data, dataset_id, new = False):
             features_dict[var] = features_dict[var][offset - offset_var:]
     
         # now, combine all features_dict into one list of features
+
         features = []
+        # for i in range(len(features_dict["heave"])):
+        #     features.append([features_dict["heave"][i][0].item(), features_dict["heave"][i][1].item(), features_dict["heave"][i][2].item(),
+        #                     features_dict["sway"][i][0].item(), features_dict["sway"][i][1].item(), features_dict["sway"][i][2].item(),
+        #                     features_dict["surge"][i][0].item(), features_dict["surge"][i][1].item(), features_dict["surge"][i][2].item(),
+        #                     features_dict["yaw"][i][0].item(), features_dict["yaw"][i][1].item(), features_dict["yaw"][i][2].item(),
+        #                     features_dict["roll"][i][0].item(), features_dict["roll"][i][1].item(), features_dict["roll"][i][2].item(),
+        #                     features_dict["pitch"][i][0].item(), features_dict["pitch"][i][1].item(), features_dict["pitch"][i][2].item()])
         for i in range(len(features_dict["heave"])):
-            features.append([features_dict["heave"][i][0], features_dict["heave"][i][1], features_dict["heave"][i][2],
-                             features_dict["sway"][i][0], features_dict["sway"][i][1], features_dict["sway"][i][2],
-                             features_dict["surge"][i][0], features_dict["surge"][i][1], features_dict["surge"][i][2],
-                             features_dict["yaw"][i][0], features_dict["yaw"][i][1], features_dict["yaw"][i][2],
-                             features_dict["roll"][i][0], features_dict["roll"][i][1], features_dict["roll"][i][2],
-                             features_dict["pitch"][i][0], features_dict["pitch"][i][1], features_dict["pitch"][i][2]])
+            features.append([features_dict["heave"][i][0].item(), features_dict["heave"][i][1].item(), features_dict["heave"][i][2].item()])
 
         if False:
             print(f"len features {len(features)}")
             print(f"amount that did not get features = {len(data['z_wf']) - len(features)}")
             # ^ looking good
             print(f"offset (should be equal to above ? ) = {offset}")
-        print(f"shape features before PCA = {np.array(features).shape}")
-        pca = PCA(n_components=0.95)
-        features = pca.fit_transform(features)
-        print(f"shape features after PCA = {features.shape}")
+        if dataset_id != 4:
+            print(f"shape features before PCA = {np.array(features).shape}")
+            pca = PCA(n_components=0.95)
+            features = pca.fit_transform(features)
+            print(f"shape features after PCA = {features.shape}")
 
         save_processed_data((features, offset), pickle_file_path)
         print(f"Processed features saved to pickle. id={dataset_id}")
@@ -243,7 +254,7 @@ def train_qp_predictor(X, y):
     # Scale features
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
-    X_test_scaled = scaler.transform(X_test)
+    # X_test_scaled = scaler.transform(X_test)
     
     # Train Random Forest with specific constraints
     # clf = RandomForestClassifier(
@@ -254,8 +265,8 @@ def train_qp_predictor(X, y):
     # )
 
     clf = AdaBoostClassifier(
-        estimator=DecisionTreeClassifier(max_depth=20),  # Weak learner
-        n_estimators=300,  # Number of weak learners
+        estimator=DecisionTreeClassifier(max_depth=30),  # Weak learner
+        n_estimators=200,  # Number of weak learners
         learning_rate=0.1,  # Controls contribution of each learner
         random_state=42
     )
@@ -298,8 +309,9 @@ def evaluate(model, scaler, X, y):
     #         best_bar = bar
     # # print(f"best bar = {best_bar}")
     # # print(f"max score = {max_score}")
-    y_pred_bin = y_pred[:, 1] > 0.55  # Threshold at 0.5
-    print(sum(y_pred_bin[:4000]))
+    y_pred_bin = y_pred[:, 1] > 0.3  # Threshold at 0.5
+    print(f"in test set amount QPs = {sum(y)}")
+    print(f"total predicted QP's {sum(y_pred_bin[:4000])}")
     print(len(y_pred_bin))
     # print(f"amount predicted QPs = {sum(y_pred_bin)}")
     # print(f"amount actual QPs = {sum(y)}")
@@ -311,7 +323,7 @@ def evaluate(model, scaler, X, y):
     """
     van de code hierboven een for loop maken die de beste threshold vindt
     """
-def format_data(data, data2, data3):
+def format_data(data, data2, data3, data4):
     path = 'slidingwindowclaudebackend/pickle_saves/data/processed_data_clean1.pkl'
     try:
         data = load_processed_data(path)
@@ -352,10 +364,22 @@ def format_data(data, data2, data3):
         data3 = data3.apply(pd.to_numeric, errors='coerce')
         save_processed_data(data3, path)
 
-    return data, data2, data3
+    try:
+        data3 = load_processed_data(path)
+
+    except:
+    
+        file_path = '../../assets/data4.csv'
+        data4 = pd.read_csv(file_path)
+        data4 = data4[['t', 'z_wf', 'Delta_t', 'y_wf', 'x_wf', 'psi_wf', 'phi_wf', 'theta_wf']]
+        data4 = data4.iloc[1:]
+        data4 = data4.apply(pd.to_numeric, errors='coerce')
+        save_processed_data(data4, path)
+
+    return data, data2, data3, data4
 
 
-def init(to_log=True,mark_first=True,mark_second=True):
+def init(to_log=True,mark_first=True,mark_second=True, mark_third=True, mark_fourth=True):
     def import_data():
     # Path to the pickle file
         pickle_file_path = 'slidingwindowclaudebackend/pickle_saves/data/processed_data1.pkl'
@@ -410,10 +434,34 @@ def init(to_log=True,mark_first=True,mark_second=True):
             save_processed_data(data3, data3_path)
             print("Processed data saved to pickle.")
         
+
+
+        data4_path = 'slidingwindowclaudebackend/pickle_saves/data/processed_data4.pkl'
+
+        try:
+            # Try to load the data if it's already saved
+            # raise FileNotFoundError
+            data4 = load_processed_data(data4_path)
+            print("Loaded data4 from pickle.")
+        except FileNotFoundError:
+            # If the pickle file doesn't exist, process the data and save it
+            file_path = '../../assets/5415M_Hs=3m_Tp=10s_10h.csv'
+            data4 = pd.read_csv(file_path, header=[0,1])
+            data4 = data4[['t', 'z_wf', 'Delta_t', 'y_wf', 'x_wf', 'psi_wf', 'phi_wf', 'theta_wf']]
+            # data2 = data2.iloc[1:]
+            data4 = data4.apply(pd.to_numeric, errors='coerce')
+            save_processed_data(data4, data4_path)
+            print("Processed data saved to pickle.")
+
+
         
-        return data, data2, data3
-    data, data2, data3 = import_data()
+        return data, data2, data3, data4
+    data, data2, data3, data4 = import_data()
+    # make pandasshow everything
     
+    
+    
+
     y = Detect_QP_CasperSteven.mark_QP(data,name="QP1", new=False)
 
     # print(f"y {y}")
@@ -424,7 +472,8 @@ def init(to_log=True,mark_first=True,mark_second=True):
     y2 = Detect_QP_CasperSteven.mark_QP(data2,name="QP2", new=False)
     # print(f"y2 {y2[:40]}")
     # print(f"y2 shape {y2.shape}")
-    y3 = Detect_QP_CasperSteven.mark_QP(data3, name="QP3", new=False)
+    y3 = Detect_QP_CasperSteven.mark_QP(data3[:11000], name="QP3", new=False)
+    y4 = Detect_QP_CasperSteven.mark_QP(data4[:20000], name="QP4", new=True)
     
     # print(f"amount QPs in data2 {sum(y2)}, total amount of data {len(y2)}")
     # y = dfb.moveQP(y)
@@ -434,17 +483,21 @@ def init(to_log=True,mark_first=True,mark_second=True):
     stop_index2 = len(data2)-120
     start_index3 = 0
     stop_index3 = len(data3)-120
+    start_index4 = 0
+    stop_index4 = len(data4)-120
 
     if to_log:
         print(f"amount QPs in data1 {sum(y)}, total amount of data {len(y)}")
         print(f"amount QPs in data2 {sum(y2)}, total amount of data {len(y2)}")
         print(f"amount QPs in data3 {sum(y3)}, total amount of data {len(y3)}")
+        print(f"amount QPs in data4 {sum(y4)}, total amount of data {len(y4)}")
     
     y = dfb.moveQP(y)
     y2 = dfb.moveQP(y2)
     y3 = dfb.moveQP(y3)
+    y4 = dfb.moveQP(y4)
 
-    data, data2, data3 = format_data(data, data2, data3)
+    data, data2, data3, data4 = format_data(data, data2, data3, data4)
     
     
     if to_log:
@@ -452,6 +505,7 @@ def init(to_log=True,mark_first=True,mark_second=True):
         print(f"amount QPs in data1 {sum(y)}, total amount of data {len(y)}")
         print(f"amount QPs in data2 {sum(y2)}, total amount of data {len(y2)}")
         print(f"amount QPs in data3 {sum(y3)}, total amount of data {len(y3)}")
+        print(f"amount QPs in data4 {sum(y4)}, total amount of data {len(y4)}")
     
     if mark_first:
         X, offset1 = create_qp_labeled_dataset_faster(data[start_index1:stop_index1], dataset_id=1, new=False)
@@ -462,10 +516,15 @@ def init(to_log=True,mark_first=True,mark_second=True):
     else:
         X2, offset2 = None, None
 
-    if mark_second:
-        X3, offset3 = create_qp_labeled_dataset_faster(data3[start_index3:stop_index3], dataset_id=3, new=True)
+    if mark_third:
+        X3, offset3 = create_qp_labeled_dataset_faster(data3[start_index3:stop_index3], dataset_id=3, new=False)
     else:
         X3, offset3 = None, None
+
+    if mark_fourth:
+        X4, offset4 = create_qp_labeled_dataset_faster(data4[start_index4:stop_index4], dataset_id=4, new=False)
+    else:
+        X4, offset4 = None, None
     
 
     
@@ -475,8 +534,10 @@ def init(to_log=True,mark_first=True,mark_second=True):
         y2 = y2[start_index2+offset2:stop_index2+2]
     if X3 is not None:
         y3 = y3[start_index3+offset3:stop_index3+2]
+    if X4 is not None:
+        y4 = y4[start_index4+offset4:stop_index4+2]
 
-    return X, X2, X3, y, y2, y3
+    return X, X2, X3, X4, y, y2, y3, y4
 
 def model_train(X, y, id=1, new = False):
     pickle_model_path = f'slidingwindowclaudebackend/pickle_saves/modellen/model{str(id)}.pkl'
@@ -504,18 +565,22 @@ def model_train(X, y, id=1, new = False):
 def main():
 
 
-    X, X2, X3, y, y2, y3 = init()
-    print(f"amount QPs in y{ sum(y)}")
+    X, X2, X3, X4, y, y2, y3, y4 = init()
+    print(X4[0])
+    import random
+    start = random.randint(0, min(len(y4),len(X4))-2001)
+    X4 = X4[start:start+2000]
+    y4 = y4[start:start+2000]
     # print(X3[:100])
     # quit()
     
 
 
-    model, scaler, X_test, y_test = model_train(X3, y3, id = 3, new = True)
-    # quit()
+    model, scaler, X_test, y_test = model_train(X4, y4, id = 4, new = True)
+    
     
 
-    evaluate(model, scaler, X_test, y_test)
+    evaluate(model, scaler, X4, y4)
     
     
 

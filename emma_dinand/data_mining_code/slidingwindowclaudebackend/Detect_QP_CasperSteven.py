@@ -73,11 +73,22 @@ def heli_incl(heave, sway, surge, yaw, roll, pitch, time, pos_helideck):
 # pitchThres = sc.special.radian(1.0,0,0)
 # inclThres = sc.special.radian(1.5,0,0)
 
+
+
+# zwaarder
+# timeThres = 30
+# HRThres = 0.3
+# rollThres = sc.special.radian(0.7,0,0)
+# pitchThres = sc.special.radian(0.7,0,0)
+# inclThres = sc.special.radian(1.1,0,0)
+
+# lichter
 timeThres = 30
-HRThres = 0.3
-rollThres = sc.special.radian(0.7,0,0)
-pitchThres = sc.special.radian(0.7,0,0)
-inclThres = sc.special.radian(1.1,0,0)
+HRThres = 0.7
+rollThres = sc.special.radian(1.2,0,0)
+pitchThres = sc.special.radian(1.2,0,0)
+inclThres = sc.special.radian(1.8,0,0)
+
 
 def mark_QP(df,name="QP",new = False):
     try:
@@ -90,19 +101,19 @@ def mark_QP(df,name="QP",new = False):
 
     except FileNotFoundError:
         # df = pd.read_csv('Modellenpracticum/clean_data.csv', header=[0,1])
-        df_temp = df.copy()
+        # df_temp = df.copy()
         #Main data variables:
-        heave, sway, surge, yaw, roll, pitch = np.array(df_temp['z_wf']), np.array(df_temp['y_wf']),np.array(df_temp['x_wf']),np.array(df_temp['psi_wf']),np.array(df_temp['phi_wf']),np.array(df_temp['theta_wf'])
-        dt, time = np.array(df_temp['Delta_t']), np.array(df_temp['t'])
+        heave, sway, surge, yaw, roll, pitch = np.array(df['z_wf']), np.array(df['y_wf']),np.array(df['x_wf']),np.array(df['psi_wf']),np.array(df['phi_wf']),np.array(df['theta_wf'])
+        dt, time = np.array(df['Delta_t']), np.array(df['t'])
         N = len(time) #Number of time steps
         H = [-50,0,-7.5] #Position helicopter deck relative to COM of ship
 
         #adding the heave speed and heli incl to dataframe
         Heave_Speed = heave_speed(sway,surge,heave,yaw,roll,pitch,H,N, dt)
-        df_temp = df_temp.assign(z_velocity=Heave_Speed)
+        # df_temp = df_temp.assign(z_velocity=Heave_Speed)
 
         Heli_Incl = heli_incl(heave, sway, surge, yaw, roll, pitch, time, H)
-        df_temp = df_temp.assign(heli_incl=Heli_Incl)
+        # df_temp = df_temp.assign(heli_incl=Heli_Incl)
 
 
         QP = np.array([])
@@ -131,7 +142,7 @@ def mark_QP(df,name="QP",new = False):
                 QP = np.append(QP, False)
                 i = i + 1
         #adding 
-        df_temp = df_temp.assign(QP=QP)
+        # df_temp = df_temp.assign(QP=QP)
 
         #check if data is correct
         # print(df.head())
@@ -139,14 +150,14 @@ def mark_QP(df,name="QP",new = False):
         save_processed_data(QP, f"slidingwindowclaudebackend/pickle_saves/vectors/{name}.pkl")
         print("Saved QP data to pickle.")
 
-        # fig, ax = plt.subplots(1, 1, figsize=(12, 5))
-        # for i in range(len(QPstart)):
-        #     ax.axvspan(QPstart[i].item(), QPend[i].item(), facecolor='green', alpha=0.2)
-        # ax.plot(time, Heave_Speed)
-        # ax.set_xlabel("Time (s)")
-        # ax.set_ylabel("Heave speed (m/s)")
-        # ax.set_title("QPs")
-        # plt.show()
+        fig, ax = plt.subplots(1, 1, figsize=(12, 5))
+        for i in range((len(QPstart))):
+            ax.axvspan(QPstart[i].item(), QPend[i].item(), facecolor='green', alpha=0.2)
+        ax.plot(time, Heave_Speed)
+        ax.set_xlabel("Time (s)")
+        ax.set_ylabel("Heave speed (m/s)")
+        ax.set_title("QPs")
+        plt.show()
 
     return QP
 
