@@ -52,13 +52,13 @@ def get_only_max_vals(data, colname="z_wf", name="0", new = False):
             raise FileNotFoundError
         
         
-        column = load_processed_data(f"slidingwindowclaudebackend/pickle_saves/vectors/{name}")
+        column = load_processed_data(f"slidingwindowclaudebackend/pickle_saves/vectors/{name}.pkl")
         print(f"Loaded column from pickle.{name}")
 
     except FileNotFoundError: 
-          
+        # print(f"could not find file {name}")
         column = np.array([data[colname].iloc[i] for i in range(len(data[colname]))])
-        save_processed_data(column, f"slidingwindowclaudebackend/pickle_saves/vectors/{name}")
+        save_processed_data(column, f"slidingwindowclaudebackend/pickle_saves/vectors/{name}.pkl")
         print(f"Saved column to pickle.{name}")
 
     

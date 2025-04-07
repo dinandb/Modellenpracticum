@@ -85,7 +85,7 @@ def mark_QP(df,name="QP",new = False):
             raise FileNotFoundError
         
         
-        QP = load_processed_data(f"slidingwindowclaudebackend/pickle_saves/vectors/{name}")
+        QP = load_processed_data(f"slidingwindowclaudebackend/pickle_saves/vectors/{name}.pkl")
         print("Loaded QP from pickle.")
 
     except FileNotFoundError:
@@ -136,7 +136,7 @@ def mark_QP(df,name="QP",new = False):
         #check if data is correct
         # print(df.head())
         # print(QPstart)
-        save_processed_data(QP, f"slidingwindowclaudebackend/pickle_saves/vectors/{name}")
+        save_processed_data(QP, f"slidingwindowclaudebackend/pickle_saves/vectors/{name}.pkl")
         print("Saved QP data to pickle.")
 
         # fig, ax = plt.subplots(1, 1, figsize=(12, 5))

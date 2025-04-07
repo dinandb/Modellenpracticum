@@ -115,23 +115,93 @@ def create_qp_labeled_dataset_faster(data, dataset_id, new = False):
         maak de eerste feature vector 
         dan voor elke
         """
-        extrema, extrema_indices = get_only_max_vals(data, colname="z_wf", name=str(dataset_id)+"_z_wf", new = True)
-        
-        # print(extrema_indices[:5])
-        # print(data["z_wf"][:50])
-        offset = extrema_indices[NO_EXTREMA_LOOKBACK-1] + 2
-        #gebruik eerste 3 maxima als feature vector voor eerste en 
-        # gebruik 4e index om te beplaen hoeveel en dan zo door en 
-        # de offset gebruiken om te bepalen hoeveel y verschoven moet worden
-        # bv extrema [12, 33, 56, 78, 103, ...]
-        # dan vanaf 58 tot 80 krijgt als feature vector: [val(12), val(33), val(56)]
-        # dan 80 tot 105 krijgt: [val(33), val(56), val(78)]
 
-        for i in range(len(extrema_indices)-2):
-            if i + 3 < len(extrema_indices):
-                features.extend([[extrema.iloc[i]['z_wf'], extrema.iloc[i+1]['z_wf'], extrema.iloc[i+2]['z_wf']]]*(extrema_indices[i+3]-extrema_indices[i+2]))
-            else:
-                features.extend([[extrema.iloc[i]['z_wf'], extrema.iloc[i+1]['z_wf'], extrema.iloc[i+2]['z_wf']]]*(len(data)-extrema_indices[i+2]))
+
+        # heave, sway, surge, yaw, roll, pitch = ['z_wf'], [y_wf'],['x_wf'],['psi_wf'],['phi_wf'],['theta_wf']
+        # extrema_heave, extrema_indices_heave = get_only_max_vals(data, colname="z_wf", name=str(dataset_id)+"_z_wf", new = True)
+        # extrema_sway, extrema_indices_sway = get_only_max_vals(data, colname="y_wf", name=str(dataset_id)+"_y_wf", new = True)
+        # extrema_surge, extrema_indices_surge = get_only_max_vals(data, colname="x_wf", name=str(dataset_id)+"_x_wf", new = True)
+        # extrema_yaw, extrema_indices_yaw = get_only_max_vals(data, colname="psi_wf", name=str(dataset_id)+"_psi_wf", new = True)
+        # extrema_roll, extrema_indices_roll = get_only_max_vals(data, colname="phi_wf", name=str(dataset_id)+"_phi_wf", new = True)
+        # extrema_pitch, extrema_indices_pitch = get_only_max_vals(data, colname="theta_wf", name=str(dataset_id)+"_theta_wf", new = True)
+
+        # offset_heave = extrema_indices_heave[NO_EXTREMA_LOOKBACK-1] + 2
+
+        # features_heave = []
+        # for i in range(len(extrema_indices)-2):
+        #     if i + 3 < len(extrema_indices):
+        #         features.extend([[extrema.iloc[i]['z_wf'], extrema.iloc[i+1]['z_wf'], extrema.iloc[i+2]['z_wf']]]*(extrema_indices[i+3]-extrema_indices[i+2]))
+        #     else:
+        #         features.extend([[extrema.iloc[i]['z_wf'], extrema.iloc[i+1]['z_wf'], extrema.iloc[i+2]['z_wf']]]*(len(data)-extrema_indices[i+2]))
+        with pd.option_context('display.max_rows', None):    
+            print(f"first 100 heave values: {data['z_wf'][:200]}")
+            print(f"first 100 sway values: {data['y_wf'][:200]}")
+
+
+
+
+
+
+
+        var_map = {
+            "heave": "z_wf",
+            "sway": "y_wf",
+            "surge": "x_wf",
+            "yaw": "psi_wf",
+            "roll": "phi_wf",
+            "pitch": "theta_wf"
+        }
+    
+    
+        extrema_dict = {}
+        extrema_indices_dict = {}
+        offset = 0
+        offset_dict = {}
+        features_dict = {}
+
+        for var, col in var_map.items():
+            extrema, extrema_indices = get_only_max_vals(data, colname=col, name=f"{dataset_id}_{col}", new=False)
+            extrema_dict[var] = extrema
+            extrema_indices_dict[var] = extrema_indices
+            
+            cur_offset = extrema_indices[NO_EXTREMA_LOOKBACK-1] + 2
+            offset_dict[var] = cur_offset
+            if cur_offset > offset:
+                offset = extrema_indices_dict[var][NO_EXTREMA_LOOKBACK-1] + 2
+            print(f"offset {offset}")
+
+        # let op! rekening houden met verschillende offsets. als er niet goed rekening mee gehouden wordt 
+        # dan kan de plaatsing van de features boven elkaar misschien niet kloppen. 
+
+        # in schrift staat hoe te doen
+
+        # dus eigenlijk moet je de offset van de extrema indices gebruiken om de features te maken.
+
+
+        for var, col in var_map.items():
+            extrema = extrema_dict[var]                  # dict holding extrema_{var} DataFrames
+            extrema_indices = extrema_indices_dict[var]  # dict holding extrema_indices_{var} lists
+            features_dict[var] = []
+
+            for i in range(len(extrema_indices) - 2):
+                if i + 3 < len(extrema_indices):
+                    features_dict[var].extend([[extrema.iloc[i][col], extrema.iloc[i+1][col], extrema.iloc[i+2][col]]] * 
+                                    (extrema_indices[i+3] - extrema_indices[i+2]))
+                else:
+                    features_dict[var].extend([[extrema.iloc[i][col], extrema.iloc[i+1][col], extrema.iloc[i+2][col]]] * 
+                                    (len(data) - extrema_indices[i+2]))
+                    
+        # now, loop over all features_dict and remove the first offset - offset_dict[var] values from each list in features_dict[var]
+        # for var, col in var_map.items():
+        #     offset_var = offset_dict[var]
+        #     print(f"removing first {offset - offset_var} values from {var}")
+        #     features_dict[var] = features_dict[var][offset - offset_var:]
+
+        print(features_dict["heave"][:10])
+        print(features_dict["sway"][:10])
+        quit()
+        # de extrema extracten gaat iig goed.
+
 
         if False:
             print(f"len features {len(features)}")
