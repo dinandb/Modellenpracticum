@@ -3,9 +3,14 @@
 import time
 import pandas as pd
 import numpy as np
+from sklearn import metrics
+import torch
+import torch.nn as nn
+import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
 import pickle
-
-
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
 def get_diffs(data, colname="z_wf", steps=1, power=1):
     """
@@ -107,5 +112,185 @@ def load_processed_data(file_path):
     with open(file_path, 'rb') as f:
         return pickle.load(f)
 
+def display_information(X, y):
+    
+    
+    # X is an array of arrays. every ith array belongs to the ith label in y.
+    # every array has the same length, n.
+    # do, for every 1 <= i <= n, the following:
+    # display a histogram of all the ith values in the arrays in X, and colour them according to the label in y.
+    # print(f"X shape {X.shape}")
+    # print(f"y shape {y.shape}")
+    import matplotlib.pyplot as plt
+
+    # Transpose X to iterate over each "column" (i.e., ith values across all arrays)
+    num_samples, n = X.shape
+
+    # Convert y to a NumPy array if it's not already
+    y = np.array(y)
+
+    for i in range(n):
+        values_class_0 = X[y == 0, i]
+        values_class_1 = X[y == 1, i]
+
+        plt.figure(figsize=(6, 4))
+        plt.hist(values_class_0, bins=30, alpha=0.6, label='Class 0', color='blue')
+        plt.hist(values_class_1, bins=30, alpha=0.6, label='Class 1', color='red')
+        plt.title(f"Histogram of feature {i}")
+        plt.xlabel(f"Value at index {i}")
+        plt.ylabel("Frequency")
+        plt.legend()
+        plt.tight_layout()
+        plt.show()
+
+def evaluate(model, X_test_scaled, y_test):
+    y_pred = model.predict(X_test_scaled)
+    cnf_matrix = metrics.confusion_matrix(y_test, y_pred)
+    print('Confusion matrix')
+    print(cnf_matrix)
+    print('---------------')
+    print('Precision:', metrics.precision_score(y_test, y_pred))
+    print('Recall:', metrics.recall_score(y_test, y_pred))
+    print('F1 Score:', metrics.f1_score(y_test, y_pred))
+
+def evaluate_torch_ltsm(model, X_test_scaled, y_test, scaler):
+    # Set the model to evaluation mode so dropout/batch norm work in inference mode.
+    model.eval()
+    
+    # Prepare the test data (unsqueeze for the sequence dimension if needed)
+    X_tensor = torch.tensor(X_test_scaled, dtype=torch.float32).unsqueeze(1)
+    y_tensor = torch.tensor(y_test, dtype=torch.long)
+    
+    # Create Dataset and DataLoader
+    dataset = TensorDataset(X_tensor, y_tensor)
+    loader = DataLoader(dataset, batch_size=16)
+    
+    all_preds = []
+    all_targets = []
+    
+    # Disable gradient computation for inference
+    with torch.no_grad():
+        for inputs, targets in loader:
+            outputs = model(inputs)  # outputs shape: (batch, num_classes)
+            preds = outputs.argmax(dim=1)  # Get index of highest logit (predicted class)
+            all_preds.append(preds.cpu())
+            all_targets.append(targets.cpu())
+    
+    # Concatenate all batches
+    all_preds = torch.cat(all_preds)
+    all_targets = torch.cat(all_targets)
+    
+    # Overall accuracy calculation
+    total_correct = (all_preds == all_targets).sum().item()
+    accuracy = total_correct / len(all_targets)
+    print(f"Overall Accuracy: {accuracy:.4f}")
+    
+    # Classes for binary classification: 0 and 1
+    classes = [0, 1]
+    
+    print(f"Class 0: {sum(all_targets == 0)}, Class 1: {sum(all_targets == 1)}")
+    for cls in classes:
+        # True Positives: predicted cls and true label is cls.
+        TP = ((all_preds == cls) & (all_targets == cls)).sum().item()
+        # False Positives: predicted cls but true label is not cls.
+        FP = ((all_preds == cls) & (all_targets != cls)).sum().item()
+        # False Negatives: didn't predict cls but true label is cls.
+        FN = ((all_preds != cls) & (all_targets == cls)).sum().item()
+        
+        # Calculate precision and recall for this class.
+        precision = TP / (TP + FP) if (TP + FP) > 0 else 0.0
+        recall    = TP / (TP + FN) if (TP + FN) > 0 else 0.0
+        
+        print(f"\nClass {cls}:")
+        print(f"  True Positives  (TP): {TP}")
+        print(f"  False Positives (FP): {FP}")
+        print(f"  False Negatives (FN): {FN}")
+        print(f"  Precision: {precision:.4f}")
+        print(f"  Recall:    {recall:.4f}")
+
+def split_data_scale(X, y, id, new = False):
+    """
+    Train a classifier to predict QP onset.
+    
+    Parameters:
+    - X: feature matrix
+    - y: labels
+    
+    Returns:
+    - Trained classifier
+    """
+    # Split data
+    try:
+        if new:
+            raise FileNotFoundError
+        X_train_scaled, X_test_scaled, y_train, y_test, scaler = load_processed_data(f'slidingwindowclaudebackend/pickle_saves/data/split{id}.pkl')
+
+    except FileNotFoundError:
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=21)
+        # print(np.sum(y_train), np.sum(y_test))
+        # print(len(y_train), len(y_test))
+        
+        # Scale features
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+        save_processed_data((X_train_scaled, X_test_scaled, y_train, y_test, scaler), f'slidingwindowclaudebackend/pickle_saves/data/split{id}.pkl')
+        
+    return X_train_scaled, X_test_scaled, y_train, y_test, scaler
 
 
+
+def format_data(data, data2, data3, data4):
+    path = 'slidingwindowclaudebackend/pickle_saves/data/processed_data_clean1.pkl'
+    try:
+        data = load_processed_data(path)
+
+    except:
+    
+        file_path = '../../assets/data1.csv'
+        data = pd.read_csv(file_path)
+        data = data[['t', 'z_wf', 'Delta_t', 'y_wf', 'x_wf', 'psi_wf', 'phi_wf', 'theta_wf']]
+        data = data.iloc[1:]
+        data = data.apply(pd.to_numeric, errors='coerce')
+        save_processed_data(data, path)
+
+    
+    path = 'slidingwindowclaudebackend/pickle_saves/data/processed_data_clean2.pkl'
+    try:
+        data2= load_processed_data(path)
+
+    except:
+    
+        file_path = '../../assets/data2.csv'
+        data2 = pd.read_csv(file_path)
+        data2 = data2[['t', 'z_wf', 'Delta_t', 'y_wf', 'x_wf', 'psi_wf', 'phi_wf', 'theta_wf']]
+        data2 = data2.iloc[1:]
+        data2 = data2.apply(pd.to_numeric, errors='coerce')
+        save_processed_data(data2, path)
+
+    path = 'slidingwindowclaudebackend/pickle_saves/data/processed_data_clean3.pkl'
+    try:
+        data3 = load_processed_data(path)
+
+    except:
+    
+        file_path = '../../assets/data3.csv'
+        data3 = pd.read_csv(file_path)
+        data3 = data3[['t', 'z_wf', 'Delta_t', 'y_wf', 'x_wf', 'psi_wf', 'phi_wf', 'theta_wf']]
+        data3 = data3.iloc[1:]
+        data3 = data3.apply(pd.to_numeric, errors='coerce')
+        save_processed_data(data3, path)
+
+    try:
+        data3 = load_processed_data(path)
+
+    except:
+    
+        file_path = '../../assets/data4.csv'
+        data4 = pd.read_csv(file_path)
+        data4 = data4[['t', 'z_wf', 'Delta_t', 'y_wf', 'x_wf', 'psi_wf', 'phi_wf', 'theta_wf']]
+        data4 = data4.iloc[1:]
+        data4 = data4.apply(pd.to_numeric, errors='coerce')
+        save_processed_data(data4, path)
+
+    return data, data2, data3, data4

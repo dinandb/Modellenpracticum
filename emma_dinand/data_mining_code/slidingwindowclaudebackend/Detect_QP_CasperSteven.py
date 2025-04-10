@@ -150,14 +150,14 @@ def mark_QP(df,name="QP",new = False):
         save_processed_data(QP, f"slidingwindowclaudebackend/pickle_saves/vectors/{name}.pkl")
         print("Saved QP data to pickle.")
 
-        fig, ax = plt.subplots(1, 1, figsize=(12, 5))
-        for i in range((len(QPstart))):
-            ax.axvspan(QPstart[i].item(), QPend[i].item(), facecolor='green', alpha=0.2)
-        ax.plot(time, Heave_Speed)
-        ax.set_xlabel("Time (s)")
-        ax.set_ylabel("Heave speed (m/s)")
-        ax.set_title("QPs")
-        plt.show()
+        # fig, ax = plt.subplots(1, 1, figsize=(12, 5))
+        # for i in range((len(QPstart))):
+        #     ax.axvspan(QPstart[i].item(), QPend[i].item(), facecolor='green', alpha=0.2)
+        # ax.plot(time, Heave_Speed)
+        # ax.set_xlabel("Time (s)")
+        # ax.set_ylabel("Heave speed (m/s)")
+        # ax.set_title("QPs")
+        # plt.show()
 
     return QP
 

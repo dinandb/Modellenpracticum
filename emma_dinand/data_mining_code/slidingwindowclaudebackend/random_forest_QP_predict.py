@@ -443,6 +443,7 @@ def init(to_log=True,mark_first=True,mark_second=True, mark_third=True, mark_fou
             # raise FileNotFoundError
             data4 = load_processed_data(data4_path)
             print("Loaded data4 from pickle.")
+            
         except FileNotFoundError:
             # If the pickle file doesn't exist, process the data and save it
             file_path = '../../assets/5415M_Hs=3m_Tp=10s_10h.csv'
