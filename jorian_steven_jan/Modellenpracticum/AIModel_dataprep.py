@@ -6,10 +6,10 @@ from sklearn.model_selection import train_test_split
 
 
 #hier laad je de dataset in de QP start vanuit Detect_QPv2(1).py
-df = pd.read_csv('Modellenpracticum/Data4_added.csv', low_memory = True)
+df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Data4_added.csv", low_memory = True)
 length = len(df.index)
 #print(df.head())
-QP_start = pd.read_csv('Modellenpracticum/Data4_QPstarts.csv', dtype = np.float64)
+QP_start = pd.read_csv(r'C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Data4_QPstarts.csv', dtype = np.float64)
 #print(QP_start.head())
 
 #vindt de extreme waarden van één variabele
