@@ -1,7 +1,7 @@
 
 
 # from random_forest_QP_predict import create_qp_labeled_dataset_faster
-import pickle
+import dill as pickle
 from sklearn.decomposition import PCA
 import numpy as np
 
@@ -113,4 +113,6 @@ def build_features(data, dataset_id, new = False):
         
     return np.array(features), offset
 
+
+pickle.dumps(build_features, open('build_features.pkl', 'wb'))
 
