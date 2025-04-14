@@ -54,13 +54,14 @@ class LinModel(nn.Module):
         # 2. Create 2 nn.Linear layers capable of handling X and y input and output shapes
         self.layer_1 = nn.Linear(in_features=8, out_features=8) # takes in 8 features (X), produces 5 features
         self.layer_2 = nn.Linear(in_features=8, out_features=8)
-        self.layer_3 = nn.Linear(in_features=8, out_features=8) # takes in 2 features (X), produces 5 features
-        self.layer_4 = nn.Linear(in_features=8, out_features=1) # takes in 5 features, produces 1 feature (y)
+        self.layer_3 = nn.Linear(in_features=8, out_features=8)
+        self.layer_4 = nn.Linear(in_features=8, out_features=8) # takes in 2 features (X), produces 5 features
+        self.layer_5 = nn.Linear(in_features=8, out_features=1) # takes in 5 features, produces 1 feature (y)
         self.relu = nn.ReLU()
     # 3. Define a forward method containing the forward pass computation
     def forward(self, x):
         # Return the output of layer_2, a single feature, the same shape as y
-        return self.layer_4(self.layer_3(self.relu(self.layer_2(self.relu(self.layer_1(x))))))
+        return self.layer_5(self.layer_4(self.layer_3(self.relu(self.layer_2(self.relu(self.layer_1(x)))))))
 
 # 4. Create an instance of the model and send it to target device
 

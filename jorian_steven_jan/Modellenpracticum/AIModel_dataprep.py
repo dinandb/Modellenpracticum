@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 
 
+
+
+
 #hier laad je de dataset in de QP start vanuit Detect_QPv2(1).py
 df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Data4_added.csv", low_memory = True)
 length = len(df.index)
@@ -94,10 +97,22 @@ print(pipoe.info)
 # plt.ylabel('amount in bin')
 # plt.title('Histogram of bins', fontweight='bold')
 # plt.show()
+laatste_twee = pipoe[['X7', 'X8', 'label']]
+wel_QP = laatste_twee[laatste_twee['label'] == 1.0]
+wel_QP_1 = wel_QP['X7']
+wel_QP_1 = wel_QP_1.to_numpy()
+wel_QP_2 = wel_QP['X8']
+wel_QP_2 = wel_QP_2.to_numpy()
+niet_QP = laatste_twee[laatste_twee['label'] == 0.0]
 
-
+niet_QP_1 = niet_QP['X7']
+niet_QP_1 = niet_QP_1.to_numpy()
+niet_QP_2 = niet_QP['X8']
+niet_QP_2 = niet_QP_2.to_numpy()
 # print(np.array(type(x['time'])))
-
+plt.scatter(wel_QP_1, wel_QP_2, s=100)
+plt.scatter(niet_QP_1, niet_QP_2)
+plt.show()
 # plt.plot(x['time'].to_numpy(), x['abs_z_velocity'].to_numpy(), 'r')
 # plt.plot(QP_start['QPstart_time'].to_numpy(), np.ones(len(QP_start.index)), 'b')
 # plt.show()

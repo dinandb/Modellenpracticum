@@ -64,8 +64,8 @@ def heli_incl(heave, sway, surge, yaw, roll, pitch, time, pos_helideck):
 #Get the dataset: (use copy as path)
 #file_path = "C:/Users/caspe/OneDrive/Documents/Programming/Modellenpracticum/QPtest/out_clean_wavespreading_36000s.csv"
 # df = pd.read_csv(file_path, header=[0,1])
-df = pd.read_csv('Modellenpracticum/Data4_clean.csv', header=[0,1])
-df = df.iloc[1:20000]
+df = pd.read_csv(r'C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Data4_clean.csv', header=[0,1])
+df = df.iloc[1:40000]
 #Main data variables:
 heave, sway, surge, yaw, roll, pitch = np.array(df['z_wf']), np.array(df['y_wf']),np.array(df['x_wf']),np.array(df['psi_wf']),np.array(df['phi_wf']),np.array(df['theta_wf'])
 time = np.array(df['t'])
