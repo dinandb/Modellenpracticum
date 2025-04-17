@@ -30,7 +30,6 @@ y = ys[4]
 
 
 
-
 #df = df.drop([i for i in range(100,1200)])
 
 
