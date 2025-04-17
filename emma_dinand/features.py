@@ -20,8 +20,8 @@ NO_EXTREMA_LOOKBACK = 3
 @dataclass
 class TimeSeriesData:
     data: pd.DataFrame
-    file_path: str | Path
-    saved_path: str | Path
+    file_path: Path
+    saved_path:Path
 
 
 
@@ -249,7 +249,7 @@ def init(to_log=True):
 
 
     X4, offset4 = build_features(data4.data[start_index4:stop_index4], dataset_id=4, new=False)
-    X5, offset5 = build_features(data5.data[start_index5:stop_index5], dataset_id=5, new=True)
+    X5, offset5 = build_features(data5.data[start_index5:stop_index5], dataset_id=5, new=False)
 
     
 
