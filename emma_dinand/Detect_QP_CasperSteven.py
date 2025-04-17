@@ -4,7 +4,7 @@ import scipy as sc
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from scipy import special
-from extras import load_processed_data, save_processed_data
+from emma_dinand.extras import load_processed_data, save_processed_data
 
 def move(sw,su,h,y,r,p,pos):
     """
@@ -76,27 +76,27 @@ def heli_incl(heave, sway, surge, yaw, roll, pitch, time, pos_helideck):
 
 
 # zwaarder
-timeThres = 30
-HRThres = 0.3
-rollThres = sc.special.radian(0.7,0,0)
-pitchThres = sc.special.radian(0.7,0,0)
-inclThres = sc.special.radian(1.1,0,0)
+# timeThres = 30
+# HRThres = 0.3
+# rollThres = sc.special.radian(0.7,0,0)
+# pitchThres = sc.special.radian(0.7,0,0)
+# inclThres = sc.special.radian(1.1,0,0)
 
 # lichter
-# timeThres = 30
-# HRThres = 0.7
-# rollThres = sc.special.radian(1.2,0,0)
-# pitchThres = sc.special.radian(1.2,0,0)
-# inclThres = sc.special.radian(1.8,0,0)
+timeThres = 30
+HRThres = 0.7
+rollThres = sc.special.radian(1.2,0,0)
+pitchThres = sc.special.radian(1.2,0,0)
+inclThres = sc.special.radian(1.8,0,0)
 
 
-def mark_QP(df,name="QP",new = False):
+def mark_QP(df, name="QP", new = False):
     try:
         if new:
             raise FileNotFoundError
         
         
-        QP = load_processed_data(f"slidingwindowclaudebackend/pickle_saves/vectors/{name}.pkl")
+        QP = load_processed_data(f"emma_dinand/pickle_saves/vectors/{name}.pkl")
         print("Loaded QP from pickle.")
 
     except FileNotFoundError:
@@ -104,7 +104,9 @@ def mark_QP(df,name="QP",new = False):
         # df_temp = df.copy()
         #Main data variables:
         heave, sway, surge, yaw, roll, pitch = np.array(df['z_wf']), np.array(df['y_wf']),np.array(df['x_wf']),np.array(df['psi_wf']),np.array(df['phi_wf']),np.array(df['theta_wf'])
-        dt, time = np.array(df['Delta_t']), np.array(df['t'])
+        time = np.array(df['t'])
+        dt = np.repeat(0.2, len(time)) #Time step (in seconds)
+                        
         N = len(time) #Number of time steps
         H = [-50,0,-7.5] #Position helicopter deck relative to COM of ship
 
@@ -147,7 +149,7 @@ def mark_QP(df,name="QP",new = False):
         #check if data is correct
         # print(df.head())
         # print(QPstart)
-        save_processed_data(QP, f"slidingwindowclaudebackend/pickle_saves/vectors/{name}.pkl")
+        save_processed_data(QP, f"emma_dinand/pickle_saves/vectors/{name}.pkl")
         print("Saved QP data to pickle.")
 
         # fig, ax = plt.subplots(1, 1, figsize=(12, 5))

@@ -11,7 +11,7 @@ NO_EXTREMA_LOOKBACK = 3
 
 def build_features(data, dataset_id, new = False):
 
-    pickle_file_path = f'slidingwindowclaudebackend/pickle_saves/vectors/processed_data_features{dataset_id}.pkl'
+    pickle_file_path = f'pickle_saves/vectors/processed_data_features{dataset_id}.pkl'
     # vervangen met eigen path
     try:
 

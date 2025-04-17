@@ -1,13 +1,12 @@
 import numpy as np
 import torch
 import pandas as pd
-import dill as pickle
-from dill import dump, load
+import pickle
 from sklearn.model_selection import train_test_split
 from torch import nn
 import matplotlib.pyplot as plt
-from helper_functions import plot_predictions, plot_decision_boundary
-
+# from helper_functions import plot_predictions, plot_decision_boundary
+from emma_dinand.features import main
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
@@ -16,28 +15,36 @@ print(device)
 
 #pickle.dump(df, open('Data4.pkl', 'wb'))
 
-file = open('Data4.pkl', 'rb')
-df = pickle.load(file)
+# file = open('Data4.pkl', 'rb')
+# df = pickle.load(file)
 
 #Eerst drie rijen er uit voor te valideren
 #val_set = df.iloc[[8,700,1850]]
 
 #De gehele dataset zonder die drie
 #tt_data = df.drop([8, 700, 1850])
+Xs,ys = main()
+X = Xs[4]
+y = ys[4]
+
+
+
+
 
 #df = df.drop([i for i in range(100,1200)])
-subset = df[['X1', 'X2','X3','X4','X5','X6','X7','X8']]
-lable = df['label']  
-X = subset.to_numpy()
-y = lable.to_numpy()
 
 
-ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
+
+ratio = (len(y)-sum(y))/sum(y)
+
+
+# ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
 ratio = torch.tensor([ratio])
 ratio = ratio.to(device)
 
 
 X = torch.from_numpy(X).type(torch.float)
+no_input = len(X[0])
 y = torch.from_numpy(y).type(torch.float)
 
 X_train, X_test, y_train, y_test = train_test_split(X, 
@@ -52,7 +59,7 @@ class LinModel(nn.Module):
     def __init__(self):
         super().__init__()
         # 2. Create 2 nn.Linear layers capable of handling X and y input and output shapes
-        self.layer_1 = nn.Linear(in_features=8, out_features=8) # takes in 8 features (X), produces 5 features
+        self.layer_1 = nn.Linear(in_features=no_input, out_features=8) # takes in 8 features (X), produces 5 features
         self.layer_2 = nn.Linear(in_features=8, out_features=8)
         self.layer_3 = nn.Linear(in_features=8, out_features=8)
         self.layer_4 = nn.Linear(in_features=8, out_features=8) # takes in 2 features (X), produces 5 features
@@ -70,7 +77,7 @@ model_0 = LinModel().to(device)
 
 
 # pos_weight is voor dat de false positives zwaarder meetellen
-loss_fn = nn.BCEWithLogitsLoss(ratio) # BCEWithLogitsLoss = sigmoid built-in
+loss_fn = nn.BCEWithLogitsLoss(pos_weight=ratio) # BCEWithLogitsLoss = sigmoid built-in
 
 # Create an optimizer
 optimizer = torch.optim.Adam(params=model_0.parameters(), 
