@@ -18,7 +18,7 @@ print(device)
 
 file = open('Data4.pkl', 'rb')
 df = pickle.load(file)
-
+print(df.head())
 #Eerst drie rijen er uit voor te valideren
 #val_set = df.iloc[[8,700,1850]]
 
