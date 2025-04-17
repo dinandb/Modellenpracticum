@@ -131,12 +131,12 @@ def build_features(data, dataset_id, new = False):
 
 
 
-def load_data(saved_path: str | Path, file_path: str | Path):
+def load_data(saved_path: Path, file_path: Path):
     try:
         # Try to load the data if it's already saved
         # raise FileNotFoundError
         data = load_processed_data(saved_path)
-        print(f"Loaded {str} from pickle.")
+        print(f"Loaded {data} from pickle.")
     except FileNotFoundError:
         # If the pickle file doesn't exist, process the data and save it
         
