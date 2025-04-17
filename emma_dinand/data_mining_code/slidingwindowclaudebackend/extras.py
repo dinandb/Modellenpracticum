@@ -143,9 +143,15 @@ def display_information(X, y):
         plt.tight_layout()
         plt.show()
 
+# def train_model(model name, x train, y train) met cv
+
+
+
 def evaluate(model, X_test_scaled, y_test):
     y_pred = model.predict(X_test_scaled)
     cnf_matrix = metrics.confusion_matrix(y_test, y_pred)
+    print(f"amount QPs in test set {sum(y_test)}, ")
+    print(f"amount QPs in predicted test set {sum(y_pred)}")
     print('Confusion matrix')
     print(cnf_matrix)
     print('---------------')

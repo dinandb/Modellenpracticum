@@ -76,18 +76,18 @@ def heli_incl(heave, sway, surge, yaw, roll, pitch, time, pos_helideck):
 
 
 # zwaarder
-# timeThres = 30
-# HRThres = 0.3
-# rollThres = sc.special.radian(0.7,0,0)
-# pitchThres = sc.special.radian(0.7,0,0)
-# inclThres = sc.special.radian(1.1,0,0)
+timeThres = 30
+HRThres = 0.3
+rollThres = sc.special.radian(0.7,0,0)
+pitchThres = sc.special.radian(0.7,0,0)
+inclThres = sc.special.radian(1.1,0,0)
 
 # lichter
-timeThres = 30
-HRThres = 0.7
-rollThres = sc.special.radian(1.2,0,0)
-pitchThres = sc.special.radian(1.2,0,0)
-inclThres = sc.special.radian(1.8,0,0)
+# timeThres = 30
+# HRThres = 0.7
+# rollThres = sc.special.radian(1.2,0,0)
+# pitchThres = sc.special.radian(1.2,0,0)
+# inclThres = sc.special.radian(1.8,0,0)
 
 
 def mark_QP(df,name="QP",new = False):

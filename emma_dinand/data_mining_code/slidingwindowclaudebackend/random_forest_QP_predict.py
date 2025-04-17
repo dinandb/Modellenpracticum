@@ -473,8 +473,8 @@ def init(to_log=True,mark_first=True,mark_second=True, mark_third=True, mark_fou
     y2 = Detect_QP_CasperSteven.mark_QP(data2,name="QP2", new=False)
     # print(f"y2 {y2[:40]}")
     # print(f"y2 shape {y2.shape}")
-    y3 = Detect_QP_CasperSteven.mark_QP(data3[:11000], name="QP3", new=False)
-    y4 = Detect_QP_CasperSteven.mark_QP(data4[:20000], name="QP4", new=True)
+    y3 = Detect_QP_CasperSteven.mark_QP(data3, name="QP3", new=True)
+    y4 = Detect_QP_CasperSteven.mark_QP(data4, name="QP4", new=False)
     
     # print(f"amount QPs in data2 {sum(y2)}, total amount of data {len(y2)}")
     # y = dfb.moveQP(y)
@@ -541,7 +541,7 @@ def init(to_log=True,mark_first=True,mark_second=True, mark_third=True, mark_fou
     return X, X2, X3, X4, y, y2, y3, y4
 
 def model_train(X, y, id=1, new = False):
-    pickle_model_path = f'slidingwindowclaudebackend/pickle_saves/modellen/model{str(id)}.pkl'
+    pickle_model_path = f'slidingwindowclaudebackend/pickle_saves/modellen/model{str(id)}_RF.pkl'
 
 
     
@@ -593,7 +593,7 @@ def main():
 
     
     
-main()
+# main()
 # X, X2, y, y2 = init()
 # odds_ratio_linear_check(X, y)
 
