@@ -56,7 +56,10 @@ def build_features(data, dataset_id, new = False):
             "heave": "z_wf",
         }
     
-    
+        heli_incl = Detect_QP_CasperSteven.heli_incl(data['z_wf'],data['y_wf'],data['x_wf'],data['psi_wf'],data['phi_wf'],data['theta_wf'], name=f"heli_incl_QP{dataset_id}", new=False)
+        # heavespeed op zelfde manier ophalen
+        # hiervan ook extrema
+        
         extrema_dict = {}
         extrema_indices_dict = {}
         offset = 0
@@ -123,6 +126,13 @@ def build_features(data, dataset_id, new = False):
         # pca = PCA(n_components=0.99)
         # features = pca.fit_transform(features)
         # print(f"shape features after PCA = {features.shape}")
+
+        # TODO: aantal extrema dynamisch maken
+        # nog toevoegen aan de features: heli_incl laatste 8 maxima
+        # laatste 8 extema heave speed
+        # alles normaliseren
+        
+
 
         save_processed_data((features, offset), pickle_file_path)
         print(f"Processed features saved to pickle. id={dataset_id}")

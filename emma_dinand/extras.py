@@ -102,7 +102,7 @@ def get_only_max_vals_vector(column, data):
     else:
         # print(indices)
         # print(len(data))  
-        return data.iloc[indices], indices
+        return np.abs(data.iloc[indices]), indices
 
 
 def save_processed_data(data, file_path):

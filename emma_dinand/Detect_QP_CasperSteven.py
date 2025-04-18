@@ -43,23 +43,37 @@ def heave_speed(sw,su,h,y,r,p,pos,N, dt):
     return Heave_Speed
 
 #function that returns an array of the helideck inclination with input 3d array of postition of helideck relative to center 0f gravity
-def heli_incl(heave, sway, surge, yaw, roll, pitch, time, pos_helideck):
-    N = len(time)
-    H = pos_helideck
-    P_1, P_2 = np.add(pos_helideck, np.array([1,0,0])), np.add(pos_helideck, np.array([0,1,0]))
-    H_pos, P_1_pos, P_2_pos = [np.array([]) for _ in range(N)], [np.array([]) for _ in range(N)], [np.array([]) for _ in range(N)]
-    normal = []
-    angle = []
-    for i in range(N):
-        H_pos[i] =  move(sway[i,0],surge[i,0],heave[i,0],yaw[i,0],roll[i,0],pitch[i,0],H)
-        P_1_pos[i] =  move(sway[i,0],surge[i,0],heave[i,0],yaw[i,0],roll[i,0],pitch[i,0],P_1)
-        P_2_pos[i] =  move(sway[i,0],surge[i,0],heave[i,0],yaw[i,0],roll[i,0],pitch[i,0],P_2)
+def heli_incl(heave, sway, surge, yaw, roll, pitch, time, pos_helideck, new = False, name="heli_incl"):	
+    try:
+        if new:
+            raise FileNotFoundError
+        angle = load_processed_data(f"emma_dinand/pickle_saves/vectors/{name}.pkl")
+        print(f"Loaded heli_incl {name} from pickle.")  
+             
+    except FileNotFoundError:
+ 
 
-    for i in range(N):
-        normal += [np.cross(np.add(P_1_pos[i], -1*H_pos[i]), np.add(P_2_pos[i], -1*H_pos[i]))]
+        N = len(time)
+        H = pos_helideck
+        P_1, P_2 = np.add(pos_helideck, np.array([1,0,0])), np.add(pos_helideck, np.array([0,1,0]))
+        H_pos, P_1_pos, P_2_pos = [np.array([]) for _ in range(N)], [np.array([]) for _ in range(N)], [np.array([]) for _ in range(N)]
+        normal = []
+        angle = []
+        for i in range(N):
+            H_pos[i] =  move(sway[i,0],surge[i,0],heave[i,0],yaw[i,0],roll[i,0],pitch[i,0],H)
+            P_1_pos[i] =  move(sway[i,0],surge[i,0],heave[i,0],yaw[i,0],roll[i,0],pitch[i,0],P_1)
+            P_2_pos[i] =  move(sway[i,0],surge[i,0],heave[i,0],yaw[i,0],roll[i,0],pitch[i,0],P_2)
 
-    for k in range(N):
-        angle += [np.arccos((normal[k][2])/np.linalg.norm(normal[k]))]
+        for i in range(N):
+            normal += [np.cross(np.add(P_1_pos[i], -1*H_pos[i]), np.add(P_2_pos[i], -1*H_pos[i]))]
+
+        for k in range(N):
+            angle += [np.arccos((normal[k][2])/np.linalg.norm(normal[k]))]
+        
+     
+        return angle
+
+
     return angle
 
 #Get the dataset: (use copy as path)
@@ -114,7 +128,7 @@ def mark_QP(df, name="QP", new = False):
         Heave_Speed = heave_speed(sway,surge,heave,yaw,roll,pitch,H,N, dt)
         # df_temp = df_temp.assign(z_velocity=Heave_Speed)
 
-        Heli_Incl = heli_incl(heave, sway, surge, yaw, roll, pitch, time, H)
+        Heli_Incl = heli_incl(heave, sway, surge, yaw, roll, pitch, time, H,new=False, name=f"heli_incl_{name}")
         # df_temp = df_temp.assign(heli_incl=Heli_Incl)
 
 
