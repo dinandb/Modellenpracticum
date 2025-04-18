@@ -48,7 +48,46 @@ def get_diffs(data, colname="z_wf", steps=1, power=1):
 
     return relevant_sim_data_derivatives[1:]
 
-def get_only_max_vals(data, colname="z_wf", name="0", new = False):
+def get_only_max_vals_vector(data, colname, new=False, name="0"):
+    column = data[colname].to_numpy(dtype=np.float32)
+    """
+    Find local maxima in a time series.
+    
+    Parameters:
+    data (DataFrame): Input data
+    colname (str): Name of the column to analyze
+    
+    Returns:
+    DataFrame: Rows from the original data where maxima were found
+    """
+    try:
+
+        # Try to load the data if it's already saved
+        if new:
+            raise FileNotFoundError
+        maxes, indices = load_processed_data(f"emma_dinand/pickle_saves/vectors/{name}.pkl")
+        print(f"Loaded maxes from pickle.{name}")
+
+    except FileNotFoundError:
+
+        indices = []
+        
+        for i in range(2, len(column)-2):
+            # Check for local maxima
+            if ((column[i-2]) < column[i-1] and column[i-1] < column[i] and column[i] > column[i+1] and column[i+1] > column[i+2]):
+                indices.append(i)
+    
+
+        maxes = data.iloc[indices]
+
+
+
+        save_processed_data((maxes, indices), f"emma_dinand/pickle_saves/vectors/{name}.pkl")
+        print(f"Saved maxes to pickle. {name}")
+
+    return maxes, indices
+
+def get_only_extrema_vals(data, colname="z_wf", name="0", new = False):
     
     try:
 
@@ -57,23 +96,24 @@ def get_only_max_vals(data, colname="z_wf", name="0", new = False):
             raise FileNotFoundError
         
         
-        column = load_processed_data(f"emma_dinand/pickle_saves/vectors/{name}.pkl")
+        extrema = load_processed_data(f"emma_dinand/pickle_saves/vectors/{name}.pkl")
         print(f"Loaded column from pickle.{name}")
 
     except FileNotFoundError: 
         # print(f"could not find file {name}")
         column = data[colname].to_numpy(dtype=np.float32)
 
+        extrema = get_only_extrema_vals_vector(column, data)
 
-        save_processed_data(column, f"emma_dinand/pickle_saves/vectors/{name}.pkl")
-        print(f"Saved column to pickle.{name}")
+        save_processed_data(extrema, f"emma_dinand/pickle_saves/vectors/{name}.pkl")
+        print(f"Saved extrema to pickle. {name}")
 
     
-    return get_only_max_vals_vector(column, data)
+    return extrema
 
         
          
-def get_only_max_vals_vector(column, data):
+def get_only_extrema_vals_vector(column, data):
     """
     Find local extrema (maxima and minima) in a time series.
     

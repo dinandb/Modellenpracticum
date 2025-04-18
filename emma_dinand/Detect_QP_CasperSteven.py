@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from scipy import special
 from emma_dinand.extras import load_processed_data, save_processed_data
+from constants import pos_helideck, timeThres, HRThres, rollThres, pitchThres, inclThres
 
 def move(sw,su,h,y,r,p,pos):
     """
@@ -33,13 +34,29 @@ def move(sw,su,h,y,r,p,pos):
     rotRes = np.array([rotRes[0, p] for p in range(3)])
     return np.add(rotRes,np.array([sw,su,h]))
 
-def heave_speed(sw,su,h,y,r,p,pos,N, dt):
-    H_pos = [np.array([]) for _ in range(N)]
-    H_pos[0] = move(sw[0,0],su[0,0],h[0,0],y[0,0],r[0,0],p[0,0],pos)
-    Heave_Speed = [0]
-    for i in range(1,N):
-        H_pos[i] = move(sw[i,0],su[i,0],h[i,0],y[i,0],r[i,0],p[i,0],pos)
-        Heave_Speed.append(((H_pos[i][2] - H_pos[i - 1][2])/dt[i]).item())
+def heave_speed(sw,su,h,y,r,p,pos,N, dt = None, new=False, name="heave_speed"):
+    dt = np.repeat(0.2, N)
+    # make it so this function also first tries to load the data from a pickle file
+    try:
+        if new:
+            raise FileNotFoundError
+        Heave_Speed = load_processed_data(f"emma_dinand/pickle_saves/vectors/heave_speed_{name}.pkl")
+        print("Loaded heave speed from pickle.")
+
+    except FileNotFoundError:
+        print("No heave speed pickle found, calculating it.")
+
+        H_pos = [np.array([]) for _ in range(N)]
+        H_pos[0] = move(sw[0],su[0],h[0],y[0],r[0],p[0],pos)
+        Heave_Speed = [0]
+        for i in range(1,N):
+            H_pos[i] = move(sw[i],su[i],h[i],y[i],r[i],p[i],pos)
+            Heave_Speed.append(((H_pos[i][2] - H_pos[i - 1][2])/dt[i]).item())
+
+        
+        save_processed_data(np.array(Heave_Speed), f"emma_dinand/pickle_saves/vectors/heave_speed_{name}.pkl")
+        print("saved heave speed to pickle.")
+
     return Heave_Speed
 
 #function that returns an array of the helideck inclination with input 3d array of postition of helideck relative to center 0f gravity
@@ -47,7 +64,7 @@ def heli_incl(heave, sway, surge, yaw, roll, pitch, time, pos_helideck, new = Fa
     try:
         if new:
             raise FileNotFoundError
-        angle = load_processed_data(f"emma_dinand/pickle_saves/vectors/{name}.pkl")
+        angle = load_processed_data(f"emma_dinand/pickle_saves/vectors/heli_incl_{name}.pkl")
         print(f"Loaded heli_incl {name} from pickle.")  
              
     except FileNotFoundError:
@@ -60,9 +77,9 @@ def heli_incl(heave, sway, surge, yaw, roll, pitch, time, pos_helideck, new = Fa
         normal = []
         angle = []
         for i in range(N):
-            H_pos[i] =  move(sway[i,0],surge[i,0],heave[i,0],yaw[i,0],roll[i,0],pitch[i,0],H)
-            P_1_pos[i] =  move(sway[i,0],surge[i,0],heave[i,0],yaw[i,0],roll[i,0],pitch[i,0],P_1)
-            P_2_pos[i] =  move(sway[i,0],surge[i,0],heave[i,0],yaw[i,0],roll[i,0],pitch[i,0],P_2)
+            H_pos[i] =  move(sway[i],surge[i],heave[i],yaw[i],roll[i],pitch[i],H)
+            P_1_pos[i] =  move(sway[i],surge[i],heave[i],yaw[i],roll[i],pitch[i],P_1)
+            P_2_pos[i] =  move(sway[i],surge[i],heave[i],yaw[i],roll[i],pitch[i],P_2)
 
         for i in range(N):
             normal += [np.cross(np.add(P_1_pos[i], -1*H_pos[i]), np.add(P_2_pos[i], -1*H_pos[i]))]
@@ -70,38 +87,14 @@ def heli_incl(heave, sway, surge, yaw, roll, pitch, time, pos_helideck, new = Fa
         for k in range(N):
             angle += [np.arccos((normal[k][2])/np.linalg.norm(normal[k]))]
         
-     
-        return angle
+        save_processed_data(np.array(angle), f"emma_dinand/pickle_saves/vectors/heli_incl_{name}.pkl")
+        print(f"Saved heli_incl {name} to pickle.")
 
-
-    return angle
-
+    return np.array(angle)
 #Get the dataset: (use copy as path)
 #file_path = "C:/Users/caspe/OneDrive/Documents/Programming/Modellenpracticum/QPtest/out_clean_wavespreading_36000s.csv"
 # df = pd.read_csv(file_path, header=[0,1])df_temp
 
-# oude
-# timeThres = 30
-# HRThres = 0.5
-# rollThres = sc.special.radian(1.0,0,0)
-# pitchThres = sc.special.radian(1.0,0,0)
-# inclThres = sc.special.radian(1.5,0,0)
-
-
-
-# zwaarder
-# timeThres = 30
-# HRThres = 0.3
-# rollThres = sc.special.radian(0.7,0,0)
-# pitchThres = sc.special.radian(0.7,0,0)
-# inclThres = sc.special.radian(1.1,0,0)
-
-# lichter
-timeThres = 30
-HRThres = 0.7
-rollThres = sc.special.radian(1.2,0,0)
-pitchThres = sc.special.radian(1.2,0,0)
-inclThres = sc.special.radian(1.8,0,0)
 
 
 def mark_QP(df, name="QP", new = False):
@@ -117,18 +110,20 @@ def mark_QP(df, name="QP", new = False):
         # df = pd.read_csv('Modellenpracticum/clean_data.csv', header=[0,1])
         # df_temp = df.copy()
         #Main data variables:
-        heave, sway, surge, yaw, roll, pitch = np.array(df['z_wf']), np.array(df['y_wf']),np.array(df['x_wf']),np.array(df['psi_wf']),np.array(df['phi_wf']),np.array(df['theta_wf'])
-        time = np.array(df['t'])
+        heave, sway, surge, yaw, roll, pitch = np.array(df['z_wf']).flatten(), np.array(df['y_wf']).flatten(),np.array(df['x_wf']).flatten(),np.array(df['psi_wf']).flatten(),np.array(df['phi_wf']).flatten(),np.array(df['theta_wf']).flatten()
+        
+        
+        time = np.array(df['t']).flatten()
         dt = np.repeat(0.2, len(time)) #Time step (in seconds)
                         
         N = len(time) #Number of time steps
-        H = [-50,0,-7.5] #Position helicopter deck relative to COM of ship
+        H = pos_helideck
 
         #adding the heave speed and heli incl to dataframe
-        Heave_Speed = heave_speed(sway,surge,heave,yaw,roll,pitch,H,N, dt)
+        Heave_Speed = heave_speed(sway,surge,heave,yaw,roll,pitch,H,N, dt,new=new, name=name)
         # df_temp = df_temp.assign(z_velocity=Heave_Speed)
 
-        Heli_Incl = heli_incl(heave, sway, surge, yaw, roll, pitch, time, H,new=False, name=f"heli_incl_{name}")
+        Heli_Incl = heli_incl(heave, sway, surge, yaw, roll, pitch, time, H,new=new, name=name)
         # df_temp = df_temp.assign(heli_incl=Heli_Incl)
 
 

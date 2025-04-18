@@ -4,14 +4,17 @@ import pickle
 import pandas as pd
 from emma_dinand import data_frame_build as dfb
 from emma_dinand import Detect_QP_CasperSteven
+
+from sklearn.preprocessing import StandardScaler
 # from slidingwindowclaudebackend import features
 from sklearn.decomposition import PCA
 import numpy as np
+from constants import NO_EXTREMA_LOOKBACK, pos_helideck
 # from jorian_steven_jan.Modellenpracticum import AIModel
 
-from emma_dinand.extras import load_processed_data, save_processed_data, get_only_max_vals
+from emma_dinand.extras import load_processed_data, save_processed_data, get_only_extrema_vals, get_only_extrema_vals_vector, get_only_max_vals_vector
 
-NO_EXTREMA_LOOKBACK = 3
+
 
 # data_path = Path("../assets")
 
@@ -50,24 +53,75 @@ def build_features(data, dataset_id, new = False):
             "surge": "x_wf",
             "yaw": "psi_wf",
             "roll": "phi_wf",
-            "pitch": "theta_wf"
-        }
-        var_map_heave = {
-            "heave": "z_wf",
+            "pitch": "theta_wf",
+
         }
     
-        heli_incl = Detect_QP_CasperSteven.heli_incl(data['z_wf'],data['y_wf'],data['x_wf'],data['psi_wf'],data['phi_wf'],data['theta_wf'], name=f"heli_incl_QP{dataset_id}", new=False)
-        # heavespeed op zelfde manier ophalen
-        # hiervan ook extrema
+        heli_incl = np.array(Detect_QP_CasperSteven.heli_incl(np.array(data['z_wf']).flatten(),np.array(data['y_wf']).flatten(),np.array(data['x_wf']).flatten(),np.array(data['psi_wf']).flatten(),np.array(data['phi_wf']).flatten(),np.array(data['theta_wf']).flatten(), np.array(data['t']).flatten(),pos_helideck, name=f"heli_incl_QP{dataset_id}", new=False))
+        heave_speed = np.array(Detect_QP_CasperSteven.heave_speed(np.array(data['z_wf']).flatten(), np.array(data['y_wf']).flatten(), np.array(data['x_wf']).flatten(), np.array(data['psi_wf']).flatten(), np.array(data['phi_wf']).flatten(), np.array(data['theta_wf']).flatten(), pos_helideck, len(data['t']), name=f"heave_speed_QP{dataset_id}", new=False))
+
+        heli_incl_df = pd.DataFrame(heli_incl, columns=["heli_incl"])
+        heave_speed_df = pd.DataFrame(heave_speed, columns=["heave_speed"])
+
+        heli_incl_max, heli_incl_max_indices = get_only_max_vals_vector(heli_incl_df, "heli_incl", name=f"{dataset_id}_heli_incl", new=False)
+        heave_speed_extrema, heave_speed_extrema_indices = get_only_extrema_vals(heave_speed_df, "heave_speed", name=f"{dataset_id}_heave_speed", new=False)
         
+        
+
         extrema_dict = {}
         extrema_indices_dict = {}
         offset = 0
         offset_dict = {}
         features_dict = {}
 
+        extrema_dict["heli_incl"] = heli_incl_max
+        extrema_indices_dict["heli_incl"] = heli_incl_max_indices
+
+        extrema_dict["heave_speed"] = heave_speed_extrema
+        extrema_indices_dict["heave_speed"] = heave_speed_extrema_indices
+
+        var = "heave_speed"
+        col = "heave_speed"
+        features_dict[var] = []
+
+        for i in range(len(heave_speed_extrema_indices) - 2):
+            if i + 3 < len(heave_speed_extrema_indices):
+                features_dict[var].extend([[heave_speed_extrema.iloc[i][col], heave_speed_extrema.iloc[i+1][col], heave_speed_extrema.iloc[i+2][col]]] * 
+                                (heave_speed_extrema_indices[i+3] - heave_speed_extrema_indices[i+2]))
+            else:
+                features_dict[var].extend([[heave_speed_extrema.iloc[i][col], heave_speed_extrema.iloc[i+1][col], heave_speed_extrema.iloc[i+2][col]]] * 
+                                (len(data) - heave_speed_extrema_indices[i+2]))
+        
+        var = "heli_incl"
+        col = "heli_incl"
+        features_dict[var] = []
+
+        for i in range(len(heli_incl_max_indices) - 2):
+            if i + 3 < len(heli_incl_max_indices):
+                features_dict[var].extend([[heli_incl_max.iloc[i][col], heli_incl_max.iloc[i+1][col], heli_incl_max.iloc[i+2][col]]] * 
+                                (heli_incl_max_indices[i+3] - heli_incl_max_indices[i+2]))
+            else:
+                features_dict[var].extend([[heli_incl_max.iloc[i][col], heli_incl_max.iloc[i+1][col], heli_incl_max.iloc[i+2][col]]] * 
+                                (len(data) - heli_incl_max_indices[i+2]))
+        
+        
+
+
+        cur_offset = heave_speed_extrema_indices[NO_EXTREMA_LOOKBACK-1] + 2
+        offset_dict["heli_incl"] = cur_offset
+        if cur_offset > offset:
+            offset = extrema_indices_dict['heli_incl'][NO_EXTREMA_LOOKBACK-1] + 2
+        # print(f"cur offset {cur_offset}, var = heli_incl")
+
+        cur_offset = heli_incl_max_indices[NO_EXTREMA_LOOKBACK-1] + 2
+        offset_dict["heave_speed"] = cur_offset
+        if cur_offset > offset:
+            offset = extrema_indices_dict['heave_speed'][NO_EXTREMA_LOOKBACK-1] + 2
+        # print(f"cur offset {cur_offset}, var = heave_speed")
+
+
         for var, col in var_map.items():
-            extrema, extrema_indices = get_only_max_vals(data, colname=col, name=f"{dataset_id}_{col}", new=False)
+            extrema, extrema_indices = get_only_extrema_vals(data, colname=col, name=f"{dataset_id}_{col}", new=False)
             extrema_dict[var] = extrema
             extrema_indices_dict[var] = extrema_indices
             
@@ -75,14 +129,7 @@ def build_features(data, dataset_id, new = False):
             offset_dict[var] = cur_offset
             if cur_offset > offset:
                 offset = extrema_indices_dict[var][NO_EXTREMA_LOOKBACK-1] + 2
-            print(f"cur offset {cur_offset}, var = {var}")
-
-        # let op! rekening houden met verschillende offsets. als er niet goed rekening mee gehouden wordt 
-        # dan kan de plaatsing van de features boven elkaar misschien niet kloppen. 
-
-        # in schrift staat hoe te doen
-
-        # dus eigenlijk moet je de offset van de extrema indices gebruiken om de features te maken.
+            # print(f"cur offset {cur_offset}, var = {var}")
 
 
         for var, col in var_map.items():
@@ -98,6 +145,15 @@ def build_features(data, dataset_id, new = False):
                     features_dict[var].extend([[extrema.iloc[i][col], extrema.iloc[i+1][col], extrema.iloc[i+2][col]]] * 
                                     (len(data) - extrema_indices[i+2]))
                     
+        var_map["heave_speed"] = "heave_speed"
+        var_map["heli_incl"] = "heli_incl"
+        # print(f"len heave {len(features_dict['heave'])}" )
+        # print(f"len heli incl {len(features_dict['heli_incl'])}" )
+        # print(f"len sway {len(features_dict['sway'])}" )
+        # print(f"len surge {len(features_dict['surge'])}" )
+        # print(f"len yaw {len(features_dict['yaw'])}" )
+        # print(f"len roll {len(features_dict['roll'])}" )
+        # print(f"len pitch {len(features_dict['pitch'])}" )
         # now, loop over all features_dict and remove the first offset - offset_dict[var] values from each list in features_dict[var]
         for var, col in var_map.items():
             offset_var = offset_dict[var]
@@ -111,10 +167,11 @@ def build_features(data, dataset_id, new = False):
         # for i in range(len(features_dict["heave"])):
         #     # hier voorloop afhnakeijk van no extrema lookback
         #     features.append([features_dict["heave"][i][0].item(), features_dict["heave"][i][1].item(), features_dict["heave"][i][2].item()])
-        for i in range(len(features_dict["heave"])):
+        for i in range(min([len(features_dict["heli_incl"]), len(features_dict["heave_speed"]), len(features_dict["heave"]), len(features_dict["sway"]), len(features_dict["surge"]), len(features_dict["yaw"]), len(features_dict["roll"]), len(features_dict["pitch"])])):
             temp = []
             for var, col in var_map.items():
                 for j in range(NO_EXTREMA_LOOKBACK):
+                    
                     temp.append(features_dict[var][i][j].item())
                 
             features.append(temp)
@@ -136,7 +193,12 @@ def build_features(data, dataset_id, new = False):
 
         save_processed_data((features, offset), pickle_file_path)
         print(f"Processed features saved to pickle. id={dataset_id}")
+        scaler = StandardScaler()
+        # print(f"features[0] before scaling = {features[0]}")
+        features = scaler.fit_transform(features)
+        # print(f"features[0] after scaling = {features[0]}")
         
+
     return np.array(features), offset
 
 
@@ -196,8 +258,6 @@ def init(to_log=True):
     data5 = load_data(data5_saved_path, data5_data_path)
 
 
-
-
     y = Detect_QP_CasperSteven.mark_QP(data1.data, name="QP1", new=False)
 
 
@@ -253,7 +313,7 @@ def init(to_log=True):
     
 
 
-    X3, offset3 = build_features(data3.data[start_index3:stop_index3], dataset_id=3, new=False)
+    X3, offset3 = build_features(data3.data[start_index3:stop_index3], dataset_id=3, new=True)
 
     
 
@@ -266,15 +326,15 @@ def init(to_log=True):
 
     
     
-    y  = y[start_index1+offset1:stop_index1+2]
+    y  = y[start_index1+offset1:len(X)+(start_index1+offset1)]
 
-    # y2 = y2[start_index2+offset2:stop_index2+2]
+    # y2 = y2[start_index2+offset2:len(X2)+start_index2+offset2]
 
-    y3 = y3[start_index3+offset3:stop_index3+2]
+    y3 = y3[start_index3+offset3:len(X3)+start_index3+offset3]
 
-    y4 = y4[start_index4+offset4:stop_index4+2]
+    y4 = y4[start_index4+offset4:len(X4)+start_index4+offset4]
 
-    y5 = y5[start_index5+offset5:stop_index5+2]
+    y5 = y5[start_index5+offset5:len(X5)+start_index5+offset5]
 
     return [X,  None, X3, X4, X5], [y,None, y3, y4, y5]
 
@@ -283,4 +343,4 @@ def main():
     Xs, ys = init()
     return Xs, ys
 
-main()
+# main()

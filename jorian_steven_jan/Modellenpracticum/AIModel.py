@@ -24,9 +24,10 @@ print(device)
 #De gehele dataset zonder die drie
 #tt_data = df.drop([8, 700, 1850])
 Xs,ys = main()
-X = Xs[4]
-y = ys[4]
-
+X = Xs[2]
+y = ys[2]
+print(X[0])
+# quit()
 
 
 
