@@ -4,6 +4,22 @@ import scipy as sc
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from scipy import special
+import matplotlib
+from pathlib import Path
+
+matplotlib.use("pgf")
+matplotlib.rcParams.update({
+    "pgf.texsystem": "pdflatex",
+    'font.family': 'serif',
+    'font.size' : 8,
+    'pgf.rcfonts': False,
+    'text.usetex': True,
+    'axes.titlesize': 14,
+    'axes.labelsize': 11,
+    'lines.linewidth' : 0.5,
+     'lines.markersize'  : 5,
+    'xtick.labelsize' : 8,
+    'ytick.labelsize': 8})
 
 def move(sw,su,h,y,r,p,pos):
     """
@@ -64,11 +80,13 @@ def heli_incl(heave, sway, surge, yaw, roll, pitch, time, pos_helideck):
 #Get the dataset: (use copy as path)
 #file_path = "C:/Users/caspe/OneDrive/Documents/Programming/Modellenpracticum/QPtest/out_clean_wavespreading_36000s.csv"
 # df = pd.read_csv(file_path, header=[0,1])
-df = pd.read_csv('Modellenpracticum/clean_data.csv', header=[0,1])
+file_path = "C:\\Users\\caspe\\OneDrive\\Documents\\GitHub\\Modellenpracticum\\casper_jort\\Data\\5415M_Hs=3m_Tp=10s_10h_clean.csv"
+df = pd.read_csv(file_path, header=[0,1])
+df = df[5000:10000]
 
 #Main data variables:
 heave, sway, surge, yaw, roll, pitch = np.array(df['z_wf']), np.array(df['y_wf']),np.array(df['x_wf']),np.array(df['psi_wf']),np.array(df['phi_wf']),np.array(df['theta_wf'])
-dt, time = np.array(df['Delta_t']), np.array(df['t'])
+dt, time = [0.2]*5000, np.array(df['t'])
 N = len(time) #Number of time steps
 H = [-50,0,-7.5] #Position helicopter deck relative to COM of ship
 
@@ -117,7 +135,7 @@ print(df.head())
 print(QPstart)
 
 #exporting data (choose your own path)
-df.to_csv (r"C:\Users\steve\Downloads\CleanQP_data_36000.csv", index = False, header=True) 
+#df.to_csv (r"C:\Users\steve\Downloads\CleanQP_data_36000.csv", index = False, header=True) 
 
 #making plots
 fig, ax = plt.subplots(1, 1, figsize=(12, 5))
@@ -127,4 +145,12 @@ ax.plot(time, Heave_Speed)
 ax.set_xlabel("Time (s)")
 ax.set_ylabel("Heave speed (m/s)")
 ax.set_title("QPs")
-plt.show()
+
+fig.set_size_inches(w=5.5, h=3.5)
+
+fig.tight_layout()
+plt.subplots_adjust(bottom=0.15, right=1, top=0.85)
+fig.set_size_inches(w=5.5, h=3.5)
+plt.savefig("C:\\Users\\caspe\\OneDrive\\Documents\\GitHub\\Modellenpracticum\\casper_jort\\Output\\" + Path(__file__).stem + ".pgf")
+
+#plt.show()

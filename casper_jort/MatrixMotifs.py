@@ -10,21 +10,21 @@ import random as rand
 from pathlib import Path
 
 
-plt.style.use('https://raw.githubusercontent.com/TDAmeritrade/stumpy/main/docs/stumpy.mplstyle')
+#plt.style.use('https://raw.githubusercontent.com/TDAmeritrade/stumpy/main/docs/stumpy.mplstyle')
 
 matplotlib.use("pgf")
 matplotlib.rcParams.update({
     "pgf.texsystem": "pdflatex",
     'font.family': 'serif',
-    'font.size' : 8,
+    'font.size' : 4,
     'pgf.rcfonts': False,
     'text.usetex': True,
-    'axes.titlesize': 14,
-    'axes.labelsize': 11,
+    'axes.titlesize': 7,
+    'axes.labelsize': 5,
     'lines.linewidth' : 0.5,
      'lines.markersize'  : 5,
-    'xtick.labelsize' : 8,
-    'ytick.labelsize': 8})
+    'xtick.labelsize' : 4,
+    'ytick.labelsize': 4})
 
 file_path = "C:\\Users\\caspe\\OneDrive\\Documents\\Programming\\Modellenpracticum\\Data\\5415M_Hs=5m_Tp=10s_10h_clean.csv"
 
