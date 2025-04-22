@@ -2,133 +2,95 @@ import torch
 import torch.optim as optim
 import numpy as np
 import pandas as pd
-import dill as pickle
-from dill import dump, load
+import pickle
+
 from sklearn.model_selection import train_test_split
 from torch import nn
+from torch.utils.data import DataLoader, TensorDataset, random_split
+import numpy as np
+
+seq_length = 8
+input_size = 8
+
+device = "cuda" if torch.cuda.is_available() else "cpu"
+print(device)
 
 
-
-# Define LSTM classifier model
-class LSTMClassifier(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, output_size):
-        super(LSTMClassifier, self).__init__()
-        self.hidden_size = hidden_size
-        self.num_layers = num_layers
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers, batch_first=True)
-        self.fc = nn.Linear(hidden_size, output_size)
-
-    def forward(self, x):
-        h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
-        c0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size).to(x.device)
-        out, _ = self.lstm(x, (h0, c0))
-        out = self.fc(out[:, -1, :])
-        return out
-
-# Generate sample data
-file_path = r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Data4_prepped.csv"
-df = pd.read_csv(file_path)
-print(df.info)
-
-
-subset = df[['X1', 'X2','X3','X4','X5','X6','X7','X8']]
-lable = df['label']  
-X = subset.to_numpy()
-y = lable.to_numpy()
-
-#determine pos weight
+df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Data4_prepped.csv")
 ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
 ratio = torch.tensor([ratio])
-print(ratio)
+ratio = ratio.to(device)
 
-# Convert data to PyTorch tensors
-X = torch.from_numpy(X).type(torch.float)
-y = torch.from_numpy(y).type(torch.float)
+wo = df[['X1', 'X2', 'X3','X4', 'X5','X6', 'X7', 'X8',]]
+X = torch.tensor(wo.to_numpy(), dtype=torch.float32)
+wl = df['label']
+y = torch.tensor(wl.to_numpy(), dtype=torch.float32)
 
-X_train, X_test, y_train, y_test = train_test_split(X, 
-                                                    y, 
-                                                    test_size=0.25, # 20% test, 80% train
-                                                    random_state=55) # make the random split reproducible
+print(X[0].shape)
+quit()
+dataset = TensorDataset(X, y)
+train_size = int(0.8 * len(dataset))
+val_size = len(dataset) - train_size
+train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=32)
 
+# ==== 2. Define the LSTM Model ====
+class LSTMClassifier(nn.Module):
+    def __init__(self, input_size, hidden_size, num_layers):
+        super(LSTMClassifier, self).__init__()
+        self.lstm = nn.LSTM(input_size=input_size,
+                            hidden_size=hidden_size,
+                            num_layers=num_layers,
+                            batch_first=True)
+        self.fc = nn.Linear(hidden_size, 1)  # Output single logit
+        self.ReLU = nn.ReLU()
 
-# Define model parameters
-input_size = 8
-hidden_size = 8
-num_layers = 2
-output_size = 1
-
-# Instantiate the model
-model_0 = LSTMClassifier(input_size, hidden_size, num_layers, output_size)
-
-# Define loss function and optimizer
-loss_fn = nn.BCEWithLogitsLoss(ratio) # BCEWithLogitsLoss = sigmoid built-in
-
-# Create an optimizer
-optimizer = torch.optim.Adam(params=model_0.parameters(), 
-                            lr=0.0001)
-
-def accuracy_fn(y_true, y_pred):
-    correct = torch.eq(y_true, y_pred).sum().item() # torch.eq() calculates where two tensors are equal
-    acc = (correct / len(y_pred)) * 100 
-    return acc
-
-def precision_fn(y_true: torch.Tensor, y_pred: torch.Tensor):
-    true_positives = ((y_pred == 1) & (y_true == 1)).sum().float()
-    predicted_positives = (y_pred == 1).sum().float()
-    precision = 100*(true_positives / (predicted_positives + 1e-8))  # avoid division by zero
-    return precision
-
-def recall_fn(y_true: torch.Tensor, y_pred: torch.Tensor):
-    true_positives = ((y_pred == 1) & (y_true == 1)).sum().float()
-    actual_positives = (y_true == 1).sum().float()
-    recall = 100*(true_positives / (actual_positives + 1e-8))  # avoid division by zero
-    return recall
+    def forward(self, x):
+        lstm_out, _ = self.lstm(x)
+        last_hidden = lstm_out[:, -1, :]  # Use the last time step
+        out = self.fc(last_hidden)
+        return self.ReLU(out).squeeze()
 
 
-# Train the model
-num_epochs = 10
+# ==== 3. Training Setup ====
+
+
+model = LSTMClassifier(input_size=input_size, hidden_size=64, num_layers=1).to(device)
+criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+# ==== 4. Training Loop ====
+num_epochs = 100
 for epoch in range(num_epochs):
-    model_0.train()
+    model.train()
+    total_loss = 0
+    for inputs, labels in train_loader:
+        inputs, labels = inputs.to(device), labels.to(device)
+        optimizer.zero_grad()
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+        total_loss += loss.item()
 
-    # 1. Forward pass (model outputs raw logits)
-    y_logits = model_0(X_train).squeeze() # squeeze to remove extra `1` dimensions, this won't work unless model and data are on same device 
-    y_pred = torch.round(torch.sigmoid(y_logits)) # turn logits -> pred probs -> pred labls
-  
-    # 2. Calculate loss/accuracy
-    # loss = loss_fn(torch.sigmoid(y_logits), # Using nn.BCELoss you need torch.sigmoid()
-    #                y_train) 
-    loss = loss_fn(y_logits, # Using nn.BCEWithLogitsLoss works with raw logits
-                   y_train) 
-    acc = accuracy_fn(y_true=y_train, 
-                      y_pred=y_pred) 
-    prec = precision_fn(y_true=y_train,
-                        y_pred = y_pred)
-
-    # 3. Optimizer zero grad
-    optimizer.zero_grad()
-
-    # 4. Loss backwards
-    loss.backward()
-
-    # 5. Optimizer step
-    optimizer.step()
-
-    ### Testing
-    model_0.eval()
-    with torch.inference_mode():
-        # 1. Forward pass
-        test_logits = model_0(X_test).squeeze() 
-        test_pred = torch.round(torch.sigmoid(test_logits))
-        # 2. Caculate loss/accuracy
-        test_loss = loss_fn(test_logits,
-                            y_test)
-        test_acc = accuracy_fn(y_true=y_test,
-                               y_pred=test_pred)
-        
-        test_precision = precision_fn(y_true=y_test, y_pred=test_pred)
-        test_recall = recall_fn(y_true=y_test, y_pred=test_pred)
-
-    # Print out what's happening every 10 epochs
-    if epoch % 50 == 0:
-        print(f"Epoch: {epoch} | Test acc: {acc}" )
+    # Validation
+    model.eval()
+    val_loss = 0
+    correct = 0
+    total = 0
+    with torch.no_grad():
+        for inputs, labels in val_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            val_loss += loss.item()
+            preds = (outputs > 0.5).float()
+            correct += (preds == labels).sum().item()
+            total += labels.size(0)
+    if epoch % 10 == 0:
+        print(f"Epoch [{epoch+1}/{num_epochs}], "
+          f"Train Loss: {total_loss/len(train_loader):.4f}, "
+          f"Val Loss: {val_loss/len(val_loader):.4f}, "
+          f"Val Acc: {correct/total:.4f}")
