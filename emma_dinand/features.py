@@ -179,10 +179,10 @@ def build_features(data, dataset_id, new = False):
         
 
     
-        # print(f"shape features before PCA = {np.array(features).shape}")
-        # pca = PCA(n_components=0.99)
-        # features = pca.fit_transform(features)
-        # print(f"shape features after PCA = {features.shape}")
+        print(f"shape features before PCA = {np.array(features).shape}")
+        pca = PCA(n_components=7)
+        features = pca.fit_transform(features)
+        print(f"shape features after PCA = {features.shape}")
 
         # TODO: aantal extrema dynamisch maken
         # nog toevoegen aan de features: heli_incl laatste 8 maxima
@@ -193,9 +193,9 @@ def build_features(data, dataset_id, new = False):
 
         save_processed_data((features, offset), pickle_file_path)
         print(f"Processed features saved to pickle. id={dataset_id}")
-        scaler = StandardScaler()
+        # scaler = StandardScaler()
         # print(f"features[0] before scaling = {features[0]}")
-        features = scaler.fit_transform(features)
+        # features = scaler.fit_transform(features)
         # print(f"features[0] after scaling = {features[0]}")
         
 
@@ -208,7 +208,7 @@ def load_data(saved_path: Path, file_path: Path):
         # Try to load the data if it's already saved
         # raise FileNotFoundError
         data = load_processed_data(saved_path)
-        print(f"Loaded {data} from pickle.")
+        print(f"Loaded data from {saved_path} from pickle.")
     except FileNotFoundError:
         # If the pickle file doesn't exist, process the data and save it
         
@@ -216,7 +216,7 @@ def load_data(saved_path: Path, file_path: Path):
         data = data[['t', 'z_wf', 'y_wf', 'x_wf', 'psi_wf', 'phi_wf', 'theta_wf']]
         data = data.apply(pd.to_numeric, errors='coerce')
         save_processed_data(data, saved_path)
-        print("Processed data saved to pickle.")
+        print(f"Read data from {file_path}. Processed data saved to pickle at {saved_path}.")
 
     ts_data = TimeSeriesData(data=data, file_path=file_path, saved_path=saved_path)
     return ts_data
@@ -313,7 +313,7 @@ def init(to_log=True):
     
 
 
-    X3, offset3 = build_features(data3.data[start_index3:stop_index3], dataset_id=3, new=True)
+    X3, offset3 = build_features(data3.data[start_index3:stop_index3], dataset_id=3, new=False)
 
     
 
