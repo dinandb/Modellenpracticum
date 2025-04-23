@@ -64,14 +64,14 @@ def dataprep(number_bins, df, column, num_extr):
 
     for i in range(len(QP_start.index)):
         for j in range(len(time)):
-            if QP[i] - time[j] < 3:
+            if QP[i] - time[j] < 1.5:
                 seq += [np.append(b[j-num_extr:j], 1.0)]
                 time = time[j:]
                 break
 
     #biba = pd.DataFrame(seq, columns=['X1', 'X2','X3','X4','X5','X6','X7','X8', 'label'])
     QP_seq = df['QP'].to_numpy()
-    steps = 8
+    steps = num_extr
     seq_2 = []
     time = x['time'].to_numpy()
     while steps < len(x.index) - (num_extr+2):
@@ -82,14 +82,14 @@ def dataprep(number_bins, df, column, num_extr):
         steps += num_extr
 
     seq += seq_2
-    boeba = pd.DataFrame(seq, columns=['X1', 'X2','X3','X4','X5','X6','X7','X8', 'label'])
+    boeba = pd.DataFrame(seq, columns=['X1', 'X2','X3','X4','X5','X6', 'label'])
     return boeba
 
-number_bins = 25
+number_bins = 50
 
-pipoe = dataprep(number_bins, df, 'heli_incl', 8)
+pipoe = dataprep(number_bins, df, 'phi_wf', 6)
 print(pipoe.info)
-#pipoe.to_csv (r"C:\Users\steve\OneDrive\Bureaublad\VS Code\Modellenpracticum\Data4_prepped.csv", index = False, header=True) 
+pipoe.to_csv (r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Data4_phi.csv", index = False, header=True) 
 
 #histogram of abs z velocity in bins
 # plt.hist(x['bins'], bins = number_bins, density=False)
@@ -97,22 +97,7 @@ print(pipoe.info)
 # plt.ylabel('amount in bin')
 # plt.title('Histogram of bins', fontweight='bold')
 # plt.show()
-laatste_twee = pipoe[['X7', 'X8', 'label']]
-wel_QP = laatste_twee[laatste_twee['label'] == 1.0]
-wel_QP_1 = wel_QP['X7']
-wel_QP_1 = wel_QP_1.to_numpy()
-wel_QP_2 = wel_QP['X8']
-wel_QP_2 = wel_QP_2.to_numpy()
-niet_QP = laatste_twee[laatste_twee['label'] == 0.0]
 
-niet_QP_1 = niet_QP['X7']
-niet_QP_1 = niet_QP_1.to_numpy()
-niet_QP_2 = niet_QP['X8']
-niet_QP_2 = niet_QP_2.to_numpy()
-# print(np.array(type(x['time'])))
-plt.scatter(wel_QP_1, wel_QP_2, s=100)
-plt.scatter(niet_QP_1, niet_QP_2)
-plt.show()
 # plt.plot(x['time'].to_numpy(), x['abs_z_velocity'].to_numpy(), 'r')
 # plt.plot(QP_start['QPstart_time'].to_numpy(), np.ones(len(QP_start.index)), 'b')
 # plt.show()
