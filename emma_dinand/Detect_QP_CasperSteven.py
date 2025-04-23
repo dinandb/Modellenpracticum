@@ -45,6 +45,7 @@ def heave_speed(sw,su,h,y,r,p,pos,N, dt = None, new=False, name="heave_speed"):
 
     except FileNotFoundError:
         print("No heave speed pickle found, calculating it.")
+        print(f"was looking for heave_speed_{name}")
 
         H_pos = [np.array([]) for _ in range(N)]
         H_pos[0] = move(sw[0],su[0],h[0],y[0],r[0],p[0],pos)
@@ -68,6 +69,8 @@ def heli_incl(heave, sway, surge, yaw, roll, pitch, time, pos_helideck, new = Fa
         print(f"Loaded heli_incl {name} from pickle.")  
              
     except FileNotFoundError:
+        print("No heli_incl pickle found, calculating it.")
+        print(f"was looking for heli_incl_{name}")
  
 
         N = len(time)
@@ -120,10 +123,10 @@ def mark_QP(df, name="QP", new = False):
         H = pos_helideck
 
         #adding the heave speed and heli incl to dataframe
-        Heave_Speed = heave_speed(sway,surge,heave,yaw,roll,pitch,H,N, dt,new=new, name=name)
+        Heave_Speed = heave_speed(sway,surge,heave,yaw,roll,pitch,H,N, dt, name=name)
         # df_temp = df_temp.assign(z_velocity=Heave_Speed)
 
-        Heli_Incl = heli_incl(heave, sway, surge, yaw, roll, pitch, time, H,new=new, name=name)
+        Heli_Incl = heli_incl(heave, sway, surge, yaw, roll, pitch, time, H, name=name)
         # df_temp = df_temp.assign(heli_incl=Heli_Incl)
 
 
