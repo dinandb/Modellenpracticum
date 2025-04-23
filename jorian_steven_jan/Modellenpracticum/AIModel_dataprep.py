@@ -9,9 +9,9 @@ from sklearn.model_selection import train_test_split
 
 
 #hier laad je de dataset in de QP start vanuit Detect_QPv2(1).py
-df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Data4_added.csv", low_memory = True)
+df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Data4_added.csv", low_memory = True, header = [0,1])
 length = len(df.index)
-#print(df.head())
+print(df.head())
 QP_start = pd.read_csv(r'C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Data4_QPstarts.csv', dtype = np.float64)
 #print(QP_start.head())
 
@@ -20,36 +20,42 @@ def abs_extr(df, column, len):
     extremas_time = []
     extremas = []
     extremas_ind = []
+    time = df['t']
+    time = time.to_numpy()
+    print(type(time[10]))
+    df = df[column]
+    df = df.to_numpy()
     for i in range(1, len-2):
-        if df[column][i-1] <= df[column][i] and df[column][i+1] <= df[column][i]:
-            extremas_time += [df['t'][i]]
-            extremas += [abs(df[column][i])]
+        if df[i-1] <= df[i] and df[i+1] <= df[i]:
+            extremas_time += [time[i].item()]
+            extremas += [abs(df[i].item())]
             extremas_ind += [i]
-        elif df[column][i-1] >= df[column][i] and df[column][i+1] >= df[column][i]:
-                extremas_time += [df['t'][i]]
-                extremas += [abs(df[column][i])]    
+        elif df[i-1] >= df[i] and df[i+1] >= df[i]:
+                extremas_time += [time[i].item()]
+                extremas += [abs(df[i].item())] 
                 extremas_ind += [i]
+    #print(extremas_time)
     return pd.DataFrame({'time': extremas_time, 'abs_' + str(column): extremas}, dtype = pd.Float64Dtype())
-
 
 #verdeeld de extrema in bins (genormaliseerd: bin k --> bin k/(num_bins))
 def col_bins(df, num_bins, col):
-    m = max(df[col][1:])
+    df = df[col].to_numpy()
+    print(df)
+    m = max(df)
     bins = []
     n = num_bins
-    for i in range(len(df.index)):
-        if df[col][i] > ((n-1)/n)*m:
+    for i in range(len(df)):
+        if df[i] > ((n-1)/n)*m:
             bins += [n/n]
         else:
             for j in range(1, num_bins):
-                if df[col][i] <= (j/n)*m and df[col][i] > ((j-1)/n)*m:
+                if df[i] <= (j/n)*m and df[i] > ((j-1)/n)*m:
                     bins += [j/n]                    
     return bins
 
 #geeft dataframe met 9 kolommen: 8 voor de bins en dan label 1 is QP en 0 is geen QP
 #inputs: hoeveel bins je wilt, dataframe van extreme waarden van één kolom, oorspronkelijke dataframe
 def dataprep(number_bins, df, column, num_extr):
-    df = df[colu]
     x = abs_extr(df, column, len(df.index))
 
     #maakt één dataset met de tijden van extreme waarde (heave speed), extreme waarde zelf en welke bin hij zit

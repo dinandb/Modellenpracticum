@@ -19,11 +19,13 @@ print(device)
 df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Data4_prepped3.csv")
 ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
 ratio = torch.tensor([min(ratio, 15.0)], device=device)
-
+print(type(df['X1'].to_numpy()[0]))
+quit()
 
 wo = df[['X1', 'X2', 'X3','X4', 'X5','X6']]
 X = torch.tensor(wo.to_numpy(), dtype=torch.float32).unsqueeze(-1)
 wl = df['label']
+
 y = torch.tensor(wl.to_numpy(), dtype=torch.float32)
 
 print(X[0].shape)
