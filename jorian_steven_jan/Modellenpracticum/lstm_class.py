@@ -3,13 +3,28 @@ import torch.optim as optim
 import numpy as np
 import pandas as pd
 import pickle
-
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset, random_split
 import numpy as np
+import requests
+from pathlib import Path 
 
-seq_length = 6
+
+# Download helper functions from Learn PyTorch repo (if not already downloaded)
+# if Path("helper_functions.py").is_file():
+#   print("helper_functions.py already exists, skipping download")
+# else:
+#   print("Downloading helper_functions.py")
+#   request = requests.get("https://raw.githubusercontent.com/mrdbourke/pytorch-deep-learning/main/helper_functions.py")
+#   with open("helper_functions.py", "wb") as f:
+#     f.write(request.content)
+
+# from helper_functions import plot_predictions, plot_decision_boundary
+
+
+seq_length = 2
 input_size = 1
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -19,16 +34,14 @@ print(device)
 df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Data4_prepped3.csv")
 ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
 ratio = torch.tensor([min(ratio, 15.0)], device=device)
-print(type(df['X1'].to_numpy()[0]))
-quit()
 
-wo = df[['X1', 'X2', 'X3','X4', 'X5','X6']]
+wo = df[['X5','X6']]
 X = torch.tensor(wo.to_numpy(), dtype=torch.float32).unsqueeze(-1)
+
 wl = df['label']
 
 y = torch.tensor(wl.to_numpy(), dtype=torch.float32)
 
-print(X[0].shape)
 
 dataset = TensorDataset(X, y)
 train_size = int(0.75 * len(dataset))
@@ -68,12 +81,12 @@ class LSTMClassifier(nn.Module):
 # ==== 3. Training Setup ====
 
 
-model = LSTMClassifier(input_size=input_size, hidden_size=32, num_layers=3).to(device)
+model = LSTMClassifier(input_size=input_size, hidden_size=8, num_layers=2).to(device)
 criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # ==== 4. Training Loop ====
-num_epochs = 800
+num_epochs = 100
 for epoch in range(num_epochs):
     model.train()
     total_loss = 0
@@ -114,3 +127,37 @@ for epoch in range(num_epochs):
           f"Val Recall: {TP / (TP + FN + 1e-8):.2f}, "
           f"Val Prec: {TP / (TP + FP + 1e-8):.2f}")
         print("TP", TP, "FN", FN, "FP", FP)
+
+def plot_decision_boundary_lstm(model, val_dataset, device, resolution=100):
+    model.eval()
+
+    # Prepare validation inputs
+    X_val = torch.stack([x for x, _ in val_dataset]).squeeze(-1).to(device)
+    y_val = torch.tensor([y for _, y in val_dataset]).to(device)
+
+    # Create meshgrid
+    x_min, x_max = X_val[:,0].min().item() - 1, X_val[:,0].max().item() + 1
+    y_min, y_max = X_val[:,1].min().item() - 1, X_val[:,1].max().item() + 1
+    xx, yy = np.meshgrid(np.linspace(x_min, x_max, resolution),
+                         np.linspace(y_min, y_max, resolution))
+    grid = np.c_[xx.ravel(), yy.ravel()]
+    grid_seq = torch.tensor(grid, dtype=torch.float32).view(-1, 2, 1).to(device)
+
+    # Predict probabilities over grid
+    with torch.no_grad():
+        preds_grid = torch.sigmoid(model(grid_seq)).cpu().numpy().reshape(xx.shape)
+
+    # Plot heatmap of probabilities
+    contour = plt.contourf(xx, yy, preds_grid, levels=25, cmap=plt.cm.RdBu, alpha=0.6, vmin=0.0, vmax=1.0)
+    plt.colorbar(contour, label="Predicted Probability")
+
+    # Scatter validation set
+    plt.scatter(X_val[:,0].cpu(), X_val[:,1].cpu(), c=y_val.cpu(), cmap=plt.cm.RdBu, edgecolor='k')
+    plt.xlabel("X5")
+    plt.ylabel("X6")
+    plt.title("LSTM Decision Boundary (Validation Set Only)")
+    plt.show()
+
+
+
+plot_decision_boundary_lstm(model, val_dataset, device)
