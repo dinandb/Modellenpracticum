@@ -269,8 +269,8 @@ def train_qp_predictor(X, y):
     # )
 
     clf = AdaBoostClassifier(
-        estimator=DecisionTreeClassifier(max_depth=20),  # Weak learner
-        n_estimators=50,  # Number of weak learners
+        estimator=DecisionTreeClassifier(max_depth=10),  # Weak learner
+        n_estimators=100,  # Number of weak learners
         learning_rate=0.1,  # Controls contribution of each learner
         random_state=42
     )
