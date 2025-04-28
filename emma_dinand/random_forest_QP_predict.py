@@ -9,6 +9,9 @@ import pickle
 from sklearn.decomposition import PCA
 from emma_dinand import features
 from emma_dinand.extras import load_processed_data, save_processed_data
+from sklearn.model_selection import GridSearchCV
+from sklearn.metrics import accuracy_score
+from sklearn.metrics import make_scorer
 
 pd.set_option('display.max_rows', None)
 # Now write your code that displays DataFrames
@@ -245,10 +248,10 @@ def train_qp_predictor(X, y):
     # Split data
     # X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=21)
 
-    X_train = X[:int(len(X)/2)]
-    X_test = X[int(len(X)/2):]
-    y_train = y[:int(len(X)/2)]
-    y_test = y[int(len(X)/2):]
+    X_train = X[:int(len(X)/5*4)]
+    X_test = X[int(len(X)/5*4):]
+    y_train = y[:int(len(X)/5*4)]
+    y_test = y[int(len(X)/5*4):]
 
 
     # print(np.sum(y_train), np.sum(y_test))
@@ -268,18 +271,51 @@ def train_qp_predictor(X, y):
     #     max_depth=20  # Prevent too complex models
     # )
 
-    clf = AdaBoostClassifier(
-        estimator=DecisionTreeClassifier(max_depth=10),  # Weak learner
-        n_estimators=100,  # Number of weak learners
-        learning_rate=0.1,  # Controls contribution of each learner
-        random_state=42
-    )
+    def accuracy_for_true_class(y_true, y_pred):
+        true_indices = y_true == 1
+        return np.mean(y_pred[true_indices] == y_true[true_indices])
 
-    # clf = LogisticRegression(random_state=0, max_iter=1000)
+    custom_scorer = make_scorer(accuracy_for_true_class, greater_is_better=True)
 
-    clf.fit(X_train_scaled, y_train)
+    clf = AdaBoostClassifier()
+    #     estimator=DecisionTreeClassifier(max_depth=10),  # Weak learner
+    #     n_estimators=100,  # Number of weak learners
+    #     learning_rate=0.1,  # Controls contribution of each learner
+    #     random_state=42
+    # )
     
-    return clf, scaler, X_test, y_test
+
+    param_grid = {
+        'estimator': [DecisionTreeClassifier(max_depth=20)],
+                    #   DecisionTreeClassifier(max_depth=5, min_samples_split=5), 
+                    #   DecisionTreeClassifier(max_depth=10, min_samples_split=2),
+                    #   DecisionTreeClassifier(max_depth=10, min_samples_split=5), 
+                    #   DecisionTreeClassifier(max_depth=20, min_samples_split=2),
+                    #   DecisionTreeClassifier(max_depth=20, min_samples_split=5)],
+        'n_estimators': [50],  
+    }
+
+    
+
+    
+
+    grid_search = GridSearchCV(estimator=clf,
+                            param_grid=param_grid,
+                            cv=5,  # 5-fold cross-validation
+                            scoring=custom_scorer,
+                            n_jobs=-1,  # use all processors
+                            verbose=1)
+    grid_search.fit(X_train, y_train)
+
+    print("Best parameters:", grid_search.best_params_)
+
+    # Use best estimator on test set
+    best_model = grid_search.best_estimator_
+    y_pred = best_model.predict(X_test)
+
+    print("Test accuracy:", accuracy_score(y_test, y_pred))
+
+    return best_model, scaler, X_test, y_test
 
 
 def evaluate(model, scaler, X, y):
@@ -357,11 +393,11 @@ def main():
 
     Xs,ys = features.main()
 
-    index = 2
+    index = 3
     X = Xs[index]
     y = ys[index]
 
-    model, scaler, X_test, y_test = model_train(X, y, id = index, new=True)
+    model, scaler, X_test, y_test = model_train(X, y, id = index, new=False)
     
     
     evaluate(model, scaler, X_test, y_test)

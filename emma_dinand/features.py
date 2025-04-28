@@ -170,19 +170,22 @@ def build_features(data, dataset_id, new = False):
         for i in range(min([len(features_dict["heli_incl"]), len(features_dict["heave_speed"]), len(features_dict["heave"]), len(features_dict["sway"]), len(features_dict["surge"]), len(features_dict["yaw"]), len(features_dict["roll"]), len(features_dict["pitch"])])):
             temp = []
             for var, col in var_map.items():
-                for j in range(NO_EXTREMA_LOOKBACK):
-                    
-                    temp.append(features_dict[var][i][j].item())
-                
-            features.append(temp)
-        
+                if var == "heli_incl" or var == "heave_speed":
+
+                    for j in range(NO_EXTREMA_LOOKBACK):
+                        
+                        temp.append(features_dict[var][i][j].item())
+
+                if var == "heli_incl" or var == "heave_speed":
+                    features.append(temp)
+            
         
 
     
-        print(f"shape features before PCA = {np.array(features).shape}")
-        pca = PCA(n_components=7)
-        features = pca.fit_transform(features)
-        print(f"shape features after PCA = {features.shape}")
+        # print(f"shape features before PCA = {np.array(features).shape}")
+        # pca = PCA(n_components=7)
+        # features = pca.fit_transform(features)
+        # print(f"shape features after PCA = {features.shape}")
 
         # TODO: aantal extrema dynamisch maken
         # nog toevoegen aan de features: heli_incl laatste 8 maxima
@@ -316,6 +319,7 @@ def init(to_log=True):
     X3, offset3 = build_features(data3.data[start_index3:stop_index3], dataset_id=3, new=False)
 
     
+    
 
 
     X4, offset4 = build_features(data4.data[start_index4:stop_index4], dataset_id=4, new=False)
@@ -341,6 +345,7 @@ def init(to_log=True):
 
 def main():
     Xs, ys = init()
+    
     return Xs, ys
 
-# main()
+main()
