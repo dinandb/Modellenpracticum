@@ -2,14 +2,11 @@ import torch
 import torch.optim as optim
 import numpy as np
 import pandas as pd
-import pickle
 import matplotlib.pyplot as plt
-from sklearn.model_selection import train_test_split
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset, random_split
 import numpy as np
-import requests
-from pathlib import Path 
+
 
 
 # Download helper functions from Learn PyTorch repo (if not already downloaded)
@@ -152,7 +149,7 @@ def plot_decision_boundary_lstm(model, val_dataset, device, resolution=100):
     plt.colorbar(contour, label="Predicted Probability")
 
     # Scatter validation set
-    plt.scatter(X_val[:,0].cpu(), X_val[:,1].cpu(), c=y_val.cpu(), cmap=plt.cm.RdBu, edgecolor='k')
+    plt.scatter(X_val[:,0].cpu(), X_val[:,1].cpu(), c=y_val.cpu(), cmap=plt.cm.RdBu)
     plt.xlabel("X5")
     plt.ylabel("X6")
     plt.title("LSTM Decision Boundary (Validation Set Only)")
