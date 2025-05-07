@@ -21,18 +21,18 @@ import numpy as np
 # from helper_functions import plot_predictions, plot_decision_boundary
 
 
-seq_length = 2
+seq_length = 76
 input_size = 1
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
 
-df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Data4_prepped3.csv")
+df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\spectrum_data2.csv")
 ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
 ratio = torch.tensor([min(ratio, 15.0)], device=device)
 
-wo = df[['X5','X6']]
+wo = df[[str(i) for i in range(76)]]
 X = torch.tensor(wo.to_numpy(), dtype=torch.float32).unsqueeze(-1)
 
 wl = df['label']
@@ -83,7 +83,7 @@ criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # ==== 4. Training Loop ====
-num_epochs = 100
+num_epochs = 200
 for epoch in range(num_epochs):
     model.train()
     total_loss = 0
@@ -117,7 +117,7 @@ for epoch in range(num_epochs):
             FN += ((preds == 0) & (labels == 1)).sum().item()
             FP += ((preds == 1) & (labels == 0)).sum().item()
             total += labels.size(0)
-    if epoch % 20 == 0:
+    if epoch % 10 == 0:
         print(f"Epoch [{epoch+1}], "
           f"Train Loss: {total_loss/len(train_loader):.2f}, "
           f"Val Acc: {correct/total:.2f}, "
@@ -157,4 +157,3 @@ def plot_decision_boundary_lstm(model, val_dataset, device, resolution=100):
 
 
 
-plot_decision_boundary_lstm(model, val_dataset, device)
