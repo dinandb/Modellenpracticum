@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from torch import nn
 from torch.utils.data import DataLoader, TensorDataset, random_split
 import numpy as np
+from sklearn.utils import shuffle
 
 
 
@@ -28,11 +29,13 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
 
-df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\spectrum_data2.csv")
+df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\spectrum_data3.csv")
+
 ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
 ratio = torch.tensor([min(ratio, 15.0)], device=device)
 
 wo = df[[str(i) for i in range(76)]]
+
 X = torch.tensor(wo.to_numpy(), dtype=torch.float32).unsqueeze(-1)
 
 wl = df['label']
@@ -80,10 +83,10 @@ class LSTMClassifier(nn.Module):
 
 model = LSTMClassifier(input_size=input_size, hidden_size=8, num_layers=2).to(device)
 criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
 # ==== 4. Training Loop ====
-num_epochs = 200
+num_epochs = 201
 for epoch in range(num_epochs):
     model.train()
     total_loss = 0
@@ -117,7 +120,7 @@ for epoch in range(num_epochs):
             FN += ((preds == 0) & (labels == 1)).sum().item()
             FP += ((preds == 1) & (labels == 0)).sum().item()
             total += labels.size(0)
-    if epoch % 10 == 0:
+    if epoch % 5 == 0:
         print(f"Epoch [{epoch+1}], "
           f"Train Loss: {total_loss/len(train_loader):.2f}, "
           f"Val Acc: {correct/total:.2f}, "
@@ -150,8 +153,8 @@ def plot_decision_boundary_lstm(model, val_dataset, device, resolution=100):
 
     # Scatter validation set
     plt.scatter(X_val[:,0].cpu(), X_val[:,1].cpu(), c=y_val.cpu(), cmap=plt.cm.RdBu)
-    plt.xlabel("X5")
-    plt.ylabel("X6")
+    plt.xlabel("3")
+    plt.ylabel("4")
     plt.title("LSTM Decision Boundary (Validation Set Only)")
     plt.show()
 
