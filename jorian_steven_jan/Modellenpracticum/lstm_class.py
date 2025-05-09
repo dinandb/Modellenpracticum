@@ -22,14 +22,14 @@ from sklearn.utils import shuffle
 # from helper_functions import plot_predictions, plot_decision_boundary
 
 
-seq_length = 150
+seq_length = 250
 input_size = 1
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
 
-df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs5_heave.csv")
+df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs5_z_velocity.csv")
 
 ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
 ratio = torch.tensor([min(ratio, 15.0)], device=device)
@@ -81,12 +81,12 @@ class LSTMClassifier(nn.Module):
 # ==== 3. Training Setup ====
 
 
-model = LSTMClassifier(input_size=input_size, hidden_size=16, num_layers=3).to(device)
+model = LSTMClassifier(input_size=input_size, hidden_size=32, num_layers=2).to(device)
 criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
 # ==== 4. Training Loop ====
-num_epochs = 1201
+num_epochs = 1001
 for epoch in range(num_epochs):
     model.train()
     total_loss = 0
