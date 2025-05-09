@@ -31,12 +31,10 @@ print(device)
 #ratio = (len(y)-sum(y))/sum(y)
 
 
-df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\spectrum_data3.csv")
+df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs5_spectrum_heave.csv")
 df = shuffle(df)
-print(df.head(10))
-val_set = df[1801:]
-print(val_set.info)
-df = df[0:1800]
+print(df.head())
+
 ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
 ratio = torch.tensor([min(ratio, 15.0)], device=device)
 
@@ -47,16 +45,16 @@ wl = df['label']
 
 y = wl.to_numpy()
 
-wo = val_set[[str(i) for i in range(76)]]
-X_2 = wo.to_numpy()
+# wo = val_set[[str(i) for i in range(76)]]
+# X_2 = wo.to_numpy()
 
-wl = val_set['label']
+# wl = val_set['label']
 
-y_2 = wl.to_numpy()
+# y_2 = wl.to_numpy()
 
-X_2 = torch.from_numpy(X).type(torch.float)
-no_input = len(X[0])
-y_2 = torch.from_numpy(y).type(torch.float)
+# X_2 = torch.from_numpy(X).type(torch.float)
+# no_input = len(X[0])
+# y_2 = torch.from_numpy(y).type(torch.float)
 
 
 
@@ -67,7 +65,7 @@ y = torch.from_numpy(y).type(torch.float)
 
 X_train, X_test, y_train, y_test = train_test_split(X, 
                                                     y, 
-                                                    test_size=0.85, # 20% test, 80% train
+                                                    test_size=0.75, # 20% test, 80% train
                                                     random_state=55) # make the random split reproducible
 
 
@@ -99,7 +97,7 @@ loss_fn = nn.BCEWithLogitsLoss(pos_weight=ratio) # BCEWithLogitsLoss = sigmoid b
 
 # Create an optimizer
 optimizer = torch.optim.Adam(params=model_0.parameters(), 
-                            lr=0.001)
+                            lr=0.0001)
 
 def accuracy_fn(y_true, y_pred):
     correct = torch.eq(y_true, y_pred).sum().item() # torch.eq() calculates where two tensors are equal
@@ -120,7 +118,7 @@ def recall_fn(y_true: torch.Tensor, y_pred: torch.Tensor):
 
 
 # Set the number of epochs
-epochs = 401
+epochs = 100001
 
 # Put data to target device
 X_train, y_train = X_train.to(device), y_train.to(device)
@@ -170,7 +168,7 @@ for epoch in range(epochs):
         test_recall = recall_fn(y_true=y_test, y_pred=test_pred)
 
     # Print out what's happening every 10 epochs
-    if epoch % 10 == 0:
+    if epoch % 1000 == 0:
         print(f"Epoch: {epoch} | Test acc: {test_acc:.2f}% | Test prec: {test_precision:.2f}% | Test recall {test_recall:.2f}%"  )
 
 
@@ -178,23 +176,23 @@ for epoch in range(epochs):
 
 
 
-X_2, y_2 = X_2.to(device), y_2.to(device)
+# X_2, y_2 = X_2.to(device), y_2.to(device)
 
-model_0.eval()
-with torch.inference_mode():
-    # 1. Forward pass
-    test_logits = model_0(X_2).squeeze() 
-    test_pred = torch.round(torch.sigmoid(test_logits))
-    # 2. Caculate loss/accuracy
-    test_loss = loss_fn(test_logits,
-                            y_2)
-    test_acc = accuracy_fn(y_true=y_2,
-                               y_pred=test_pred)
+# model_0.eval()
+# with torch.inference_mode():
+#     # 1. Forward pass
+#     test_logits = model_0(X_2).squeeze() 
+#     test_pred = torch.round(torch.sigmoid(test_logits))
+#     # 2. Caculate loss/accuracy
+#     test_loss = loss_fn(test_logits,
+#                             y_2)
+#     test_acc = accuracy_fn(y_true=y_2,
+#                                y_pred=test_pred)
         
-    test_precision = precision_fn(y_true=y_2, y_pred=test_pred)
-    test_recall = recall_fn(y_true=y_2, y_pred=test_pred)
+#     test_precision = precision_fn(y_true=y_2, y_pred=test_pred)
+#     test_recall = recall_fn(y_true=y_2, y_pred=test_pred)
 
-print("acc: ", test_acc, "prec: ", test_precision, "recall: ", test_recall)
+# print("acc: ", test_acc, "prec: ", test_precision, "recall: ", test_recall)
 # Saving model
 # model_scripted = torch.jit.script(model_0) # Export to TorchScript
 # model_scripted.save('model_scripted.pt') # Save
