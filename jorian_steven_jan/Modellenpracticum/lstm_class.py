@@ -9,32 +9,19 @@ import numpy as np
 from sklearn.utils import shuffle
 
 
-
-# Download helper functions from Learn PyTorch repo (if not already downloaded)
-# if Path("helper_functions.py").is_file():
-#   print("helper_functions.py already exists, skipping download")
-# else:
-#   print("Downloading helper_functions.py")
-#   request = requests.get("https://raw.githubusercontent.com/mrdbourke/pytorch-deep-learning/main/helper_functions.py")
-#   with open("helper_functions.py", "wb") as f:
-#     f.write(request.content)
-
-# from helper_functions import plot_predictions, plot_decision_boundary
-
-
-seq_length = 250
+seq_length = 150
 input_size = 1
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
 
-df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs5_z_velocity.csv")
+df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs4_heavespeed_crit.csv")
 
 ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
 ratio = torch.tensor([min(ratio, 15.0)], device=device)
 
-wo = df[[str(i) for i in range(76)]]
+wo = df[[str(i) for i in range(seq_length)]]
 
 X = torch.tensor(wo.to_numpy(), dtype=torch.float32).unsqueeze(-1)
 
@@ -48,8 +35,8 @@ train_size = int(0.75 * len(dataset))
 val_size = len(dataset) - train_size
 train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=32)
+train_loader = DataLoader(train_dataset, batch_size=512, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=512)
 
 # ==== 2. Define the LSTM Model ====
 class LSTMClassifier(nn.Module):
