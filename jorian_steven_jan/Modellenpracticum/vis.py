@@ -2,6 +2,11 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+array = [[0.0, 1.9], [5.4, 9.0], [4.0, 8.0]]
+kolommen = ['a', 'b']
+dataprep_2 = pd.DataFrame(array, columns=kolommen)
+print(dataprep_2.info)
+quit()
 df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Data4_heli_incl.csv")
 
 df = df[['X5', 'X6', 'label']]
