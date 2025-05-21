@@ -27,12 +27,12 @@ import random
 TRAINING = False # Set to True to train, False to load and predict/test
 
 # --- File Paths ---
-CSV_PATH = 'C:\\Users\\caspe\\OneDrive\\Documents\\Programming\\Modellenpracticum\\Data\\CleanQP_data_36000.csv'
+CSV_PATH = r'C:\Users\caspe\OneDrive\Documents\Programming\Modellenpracticum\Data\5415M_Hs=4m_Tp=10s_10h_clean.csv'
 SAVED_MODELS_DIR = './saved_models_dual_multi_zeta'
 os.makedirs(SAVED_MODELS_DIR, exist_ok=True)
 
 # ---> Timestamp for Loading (Only used if TRAINING = False) <---
-LOAD_RUN_TIMESTAMP = "20250515_205224" # <<< EXAMPLE: From your error message <<<
+LOAD_RUN_TIMESTAMP = "20250516_134601" # <<< EXAMPLE: From your error message <<<
 
 # --- Data Parameters ---
 TARGET_COLUMNS = ['z_wf', 'y_wf', 'x_wf', 'phi_wf', 'theta_wf', 'psi_wf']
