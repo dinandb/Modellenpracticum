@@ -3,14 +3,16 @@ import torch
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from torch import nn
-import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
 from sklearn.datasets import make_blobs
+import matplotlib
+import matplotlib.pyplot as plt
 
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
+matplotlib.use('pgf')  # Set PGF backend before importing pyplot
 num_samples = 500
 X, y = make_blobs(n_samples=num_samples, 
                   centers=2, 
@@ -25,13 +27,29 @@ df_1 = df[df['label'] == 1.0]
 
 rijtje_0 = df_0[['X1','X2']].to_numpy()
 rijtje_1 = df_1[['X1','X2']].to_numpy()
+
+matplotlib.rcParams.update({
+    "pgf.texsystem": "pdflatex",
+    'font.family': 'serif',
+    'font.size' : 8,
+    'pgf.rcfonts': False,
+    'text.usetex': True,
+    'axes.titlesize': 14,
+    'axes.labelsize': 11,
+    'lines.linewidth' : 0.5,
+     'lines.markersize'  : 5,
+    'xtick.labelsize' : 8,
+    'ytick.labelsize':8})
+fig, ax = plt.subplots(1, 1, figsize=(12, 5))
+plt.subplots_adjust(bottom=0.15, left = 0.15, top=0.85)
+fig.set_size_inches(w=5.5, h=3.5)
 plt.scatter(rijtje_0[:, 0], rijtje_0[:, 1], color='red', edgecolors='k', label='0')
 plt.scatter(rijtje_1[:, 0], rijtje_1[:, 1], color='blue', edgecolors='k', label='1')
 plt.xlabel("X1")
 plt.ylabel("X2")
 plt.title("Two clusters")
-plt.show()
-
+plt.savefig(r'C:\Users\steve\OneDrive\Bureaublad\clusters.pgf')
+quit()
 len_seq = 2
 
 ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
@@ -83,7 +101,7 @@ class LinModel(nn.Module):
     # 3. Define a forward method containing the forward pass computation
     def forward(self, x):
         # Return the output of layer_2, a single feature, the same shape as y
-        return self.layer_4(self.relu(self.layer_3(self.relu(self.layer_2(self.sigmoid(self.layer_1(x)))))))
+        return self.layer_4(self.layer_3(self.relu(self.layer_2(self.sigmoid(self.layer_1(x))))))
 
 # 4. Create an instance of the model and send it to target device
 
