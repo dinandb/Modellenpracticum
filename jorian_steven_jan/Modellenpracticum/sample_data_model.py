@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 from torch import nn
 from sklearn.utils import shuffle
-from sklearn.datasets import make_blobs
+from sklearn.datasets import make_blobs, make_moons
 import matplotlib
 import matplotlib.pyplot as plt
 
@@ -20,6 +20,7 @@ X, y = make_blobs(n_samples=num_samples,
                   cluster_std=1.15,
                   random_state=0)
 
+X, y = make_moons(n_samples=num_samples, noise=0.23, random_state=42)
 
 df = pd.DataFrame({'X1': X[:, 0], 'X2': X[:, 1], 'label': y}, dtype=np.float32)
 df_0 = df[df['label'] == 0.0]
@@ -40,16 +41,15 @@ matplotlib.rcParams.update({
      'lines.markersize'  : 5,
     'xtick.labelsize' : 8,
     'ytick.labelsize':8})
-fig, ax = plt.subplots(1, 1, figsize=(12, 5))
-plt.subplots_adjust(bottom=0.15, left = 0.15, top=0.85)
-fig.set_size_inches(w=5.5, h=3.5)
-plt.scatter(rijtje_0[:, 0], rijtje_0[:, 1], color='red', edgecolors='k', label='0')
-plt.scatter(rijtje_1[:, 0], rijtje_1[:, 1], color='blue', edgecolors='k', label='1')
-plt.xlabel("X1")
-plt.ylabel("X2")
-plt.title("Two clusters")
-plt.savefig(r'C:\Users\steve\OneDrive\Bureaublad\clusters.pgf')
-quit()
+# fig, ax = plt.subplots(1, 1, figsize=(12, 5))
+# plt.subplots_adjust(bottom=0.15, left = 0.15, top=0.85)
+# fig.set_size_inches(w=5.5, h=3.5)
+# plt.scatter(rijtje_0[:, 0], rijtje_0[:, 1], color='red', edgecolors='k', label='0')
+# plt.scatter(rijtje_1[:, 0], rijtje_1[:, 1], color='blue', edgecolors='k', label='1')
+# plt.xlabel("X1")
+# plt.ylabel("X2")
+# plt.title("Two clusters")
+# plt.savefig(r'C:\Users\steve\OneDrive\Bureaublad\clusters.pgf')
 len_seq = 2
 
 ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
@@ -92,16 +92,16 @@ class LinModel(nn.Module):
     def __init__(self):
         super().__init__()
         # 2. Create 2 nn.Linear layers capable of handling X and y input and output shapes
-        self.layer_1 = nn.Linear(in_features=no_input, out_features=8) # takes in 8 features (X), produces 5 features
-        self.layer_2 = nn.Linear(in_features=8, out_features=8)
-        self.layer_3 = nn.Linear(in_features=8, out_features=8) # takes in 2 features (X), produces 5 features
-        self.layer_4 = nn.Linear(in_features=8, out_features=1) # takes in 5 features, produces 1 feature (y)
+        self.layer_1 = nn.Linear(in_features=no_input, out_features=16) # takes in 8 features (X), produces 5 features
+        self.layer_2 = nn.Linear(in_features=16, out_features=16)
+        self.layer_3 = nn.Linear(in_features=16, out_features=16) # takes in 2 features (X), produces 5 features
+        self.layer_4 = nn.Linear(in_features=16, out_features=1) # takes in 5 features, produces 1 feature (y)
         self.relu = nn.ReLU()
-        self.sigmoid = nn.Softmax()
+        self.sigmoid = nn.Sigmoid()
     # 3. Define a forward method containing the forward pass computation
     def forward(self, x):
         # Return the output of layer_2, a single feature, the same shape as y
-        return self.layer_4(self.layer_3(self.relu(self.layer_2(self.sigmoid(self.layer_1(x))))))
+        return self.layer_4(self.layer_3(self.relu(self.layer_2(self.relu(self.layer_1(x))))))
 
 # 4. Create an instance of the model and send it to target device
 
@@ -191,8 +191,8 @@ for epoch in range(epochs + 1):
 # 1. Create mesh grid over the full input space
 x_min, x_max = X_test[:, 0].min().item() - 1, X_test[:, 0].max().item() + 1
 y_min, y_max = X_test[:, 1].min().item() - 1, X_test[:, 1].max().item() + 1
-xx, yy = np.meshgrid(np.linspace(x_min, x_max, 300),
-                     np.linspace(y_min, y_max, 300))
+xx, yy = np.meshgrid(np.linspace(x_min, x_max, 80),
+                     np.linspace(y_min, y_max, 80))
 
 # 2. Prepare mesh input for model
 grid = np.c_[xx.ravel(), yy.ravel()]
@@ -208,8 +208,8 @@ with torch.inference_mode():
 Z = probs.reshape(xx.shape)
 
 # 5. Plot the probability background (graded)
-plt.figure(figsize=(8, 6))
-contour = plt.contourf(xx, yy, Z, 100, cmap='RdBu', alpha=0.7)
+fig, ax = plt.subplots(1, 1, figsize=(12, 5))
+contour = plt.contourf(xx, yy, Z, 100, cmap='RdBu', alpha=0.7, levels = 20)
 plt.colorbar(contour, label='Predicted Probability (class 1)')
 
 # 6. Extract test set points by class
@@ -219,6 +219,9 @@ test_0 = X_test_np[test_preds == 0]
 test_1 = X_test_np[test_preds == 1]
 
 # 7. Plot test set points only
+
+plt.subplots_adjust(bottom=0.15, left = 0.15, top=0.85)
+fig.set_size_inches(w=5.5, h=3.5)
 plt.scatter(test_0[:, 0], test_0[:, 1], color='red', edgecolor='k', label='Test Class 0')
 plt.scatter(test_1[:, 0], test_1[:, 1], color='blue', edgecolor='k', label='Test Class 1')
 
@@ -226,4 +229,4 @@ plt.xlabel("X1")
 plt.ylabel("X2")
 plt.title("Decision Boundary with Test Set Only")
 plt.legend()
-plt.show()
+plt.savefig(r'C:\Users\steve\OneDrive\Bureaublad\dec_bound2.pgf')
