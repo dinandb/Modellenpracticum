@@ -8,18 +8,27 @@ from torch import nn
 from torch.utils.data import DataLoader, TensorDataset, random_split
 
 
-num_samples = 600
+num_samples = 500
 X, y = make_blobs(n_samples=num_samples, 
                   centers=2, 
                   n_features=2, 
-                  cluster_std=1.4,
+                  cluster_std=1.15,
                   random_state=0)
 
 
-
 df = pd.DataFrame({'X1': X[:, 0], 'X2': X[:, 1], 'label': y}, dtype=np.float32)
-print(df.head())
+df_0 = df[df['label'] == 0.0]
+df_1 = df[df['label'] == 1.0]
 
+rijtje_0 = df_0[['X1','X2']].to_numpy()
+rijtje_1 = df_1[['X1','X2']].to_numpy()
+plt.scatter(rijtje_0[:, 0], rijtje_0[:, 1], color='red', edgecolors='k', label='0')
+plt.scatter(rijtje_1[:, 0], rijtje_1[:, 1], color='blue', edgecolors='k', label='1')
+plt.xlabel("X1")
+plt.ylabel("X2")
+plt.title("Two clusters")
+plt.show()
+quit()
 seq_length = 2
 input_size = 1
 
@@ -76,7 +85,7 @@ class LSTMClassifier(nn.Module):
 # ==== 3. Training Setup ====
 
 
-model = LSTMClassifier(input_size=input_size, hidden_size=8, num_layers=2).to(device)
+model = LSTMClassifier(input_size=input_size, hidden_size=4, num_layers=1).to(device)
 criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
