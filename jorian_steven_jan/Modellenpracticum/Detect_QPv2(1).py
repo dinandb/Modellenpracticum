@@ -65,7 +65,6 @@ def heli_incl(heave, sway, surge, yaw, roll, pitch, time, pos_helideck):
 #file_path = "C:/Users/caspe/OneDrive/Documents/Programming/Modellenpracticum/QPtest/out_clean_wavespreading_36000s.csv"
 # df = pd.read_csv(file_path, header=[0,1])
 df = pd.read_csv(r'C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\5415M_Hs=4m_Tp=10s_10h_clean.csv', header=[0,1])
-
 #Main data variables:
 heave, sway, surge, yaw, roll, pitch = np.array(df['z_wf']), np.array(df['y_wf']),np.array(df['x_wf']),np.array(df['psi_wf']),np.array(df['phi_wf']),np.array(df['theta_wf'])
 time = np.array(df['t'])
@@ -96,16 +95,16 @@ inclThres = sc.special.radian(2.5,0,0)
 
 i = 0
 while(i < len(time)):
-    if(abs(Heave_Speed[i]) < HRThres and abs(roll[i]) < rollThres and abs(pitch[i]) < pitchThres) and Heli_Incl[i] < inclThres:
+    if(abs(Heave_Speed[i]) < HRThres and abs(roll[i]) < rollThres and abs(pitch[i]) < pitchThres and Heli_Incl[i] < inclThres):
         j = 1
         while(abs(Heave_Speed[i + j - 1]) < HRThres and abs(roll[i + j - 1]) < rollThres and abs(pitch[i + j - 1]) < pitchThres  and Heli_Incl[i] < inclThres and i + j + 1 < len(Heave_Speed)):
             j = j + 1
         if(time[i + j - 1] - time[i] >= timeThres):
-            QP= np.concatenate((QP, np.repeat(False, j)))
+            QP= np.concatenate((QP, np.repeat(True, j)))
             QPstart.append(time[i])
             QPend.append(time[i+j])
         elif(time[i + j - 1] - time[i] < timeThres):
-            QP = np.concatenate((QP, np.repeat(True, j)))
+            QP = np.concatenate((QP, np.repeat(False, j)))
         i = i+j
     else:
         QP = np.append(QP, False)
@@ -118,7 +117,7 @@ df = df.assign(QP=QP)
 # print(QPstart)
 #print(QPstart[1])
 #exporting data (choose your own path)
-df.to_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs4_data_withQP.csv", index = False, header=True) 
+df.to_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs4_data_withQP2.csv", index = False, header=True) 
 
 #making dataframe for exporting the QPstart times
 QP_start_array = []
@@ -126,10 +125,11 @@ for i in range(len(QPstart)):
     QP_start_array += [QPstart[i][0]]
 
 QP_start_data = pd.DataFrame({'QPstart_time': QP_start_array})
+print(QP_start_data.head(10))
 # print(QP_start_data.head())
 # print(QP_start_data.info)
 
-QP_start_data.to_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs4_QPstarts.csv", index = False, header=True) 
+#QP_start_data.to_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs4_QPstarts.csv", index = False, header=True) 
 
 #making plots
 # fig, ax = plt.subplots(1, 1, figsize=(12, 5))
