@@ -6,3 +6,4 @@ onzin
 .conda
 __pycache__
 casper_dinand/.venv
+casper_dinand/lighting_logs
