@@ -1,7 +1,8 @@
 assets
 .RData
 .Rhistory
-/emma_dinand/.RData
+emma_dinand/.RData
 onzin
 .conda
 __pycache__
+casper_dinand/.venv
