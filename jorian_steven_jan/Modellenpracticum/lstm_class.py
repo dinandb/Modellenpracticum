@@ -40,12 +40,14 @@ val_loader = DataLoader(val_dataset, batch_size=512)
 
 # ==== 2. Define the LSTM Model ====
 class LSTMClassifier(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers):
+    def __init__(self, input_size, hidden_size, num_layers, dropout):
         super(LSTMClassifier, self).__init__()
         self.lstm = nn.LSTM(input_size=input_size,
                             hidden_size=hidden_size,
                             num_layers=num_layers,
-                            batch_first=True)
+                            batch_first=True,
+                            dropout=dropout,
+                            bidirectional=True)
         self.fc = nn.Linear(hidden_size, 1)  # Output single logit
         
         for name, param in self.lstm.named_parameters():
@@ -68,7 +70,7 @@ class LSTMClassifier(nn.Module):
 # ==== 3. Training Setup ====
 
 
-model = LSTMClassifier(input_size=input_size, hidden_size=32, num_layers=2).to(device)
+model = LSTMClassifier(input_size=input_size, hidden_size=32, num_layers=2, dropout=0.2).to(device)
 criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 

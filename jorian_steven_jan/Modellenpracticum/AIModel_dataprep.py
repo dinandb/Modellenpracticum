@@ -55,21 +55,14 @@ def col_bins(df, num_bins, col):
 
 #geeft dataframe met 9 kolommen: 8 voor de bins en dan label 1 is QP en 0 is geen QP
 #inputs: hoeveel bins je wilt, dataframe van extreme waarden van één kolom, oorspronkelijke dataframe
-def dataprep(number_bins, df, column, num_extr):
+def dataprep(df, QP_starts, column, num_extr):
     x = abs_extr(df, column, len(df.index))
 
-    #maakt één dataset met de tijden van extreme waarde (heave speed), extreme waarde zelf en welke bin hij zit
-    x.insert(2, 'bins', col_bins(x, number_bins, 'abs_' + column), allow_duplicates=True)
-    # print(x['bins'])
+    QP_starts = QP_starts['QPstart_time']
+    print(QP_starts)
 
 
-    time = x['time'].to_numpy()
-    QP = QP_start['QPstart_time'].to_numpy()
-    b = x['bins'].to_numpy()
-
-    seq = []
-
-    for i in range(len(QP_start.index)):
+    for times in QP_starts:
         for j in range(len(time)):
             if QP[i] - time[j] < 1.5:
                 seq += [np.append(b[j-num_extr:j], 1.0)]
