@@ -16,10 +16,10 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
 
-df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\heave_speed_for_model.csv")
-
+df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\new_data1212.csv")
+df = df.drop_duplicates()
 ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
-ratio = torch.tensor([min(ratio, 15.0)], device=device)
+ratio = torch.tensor([min(15, ratio)], device=device)
 
 wo = df[[str(i) for i in range(seq_length)]]
 
@@ -35,8 +35,8 @@ train_size = int(0.75 * len(dataset))
 val_size = len(dataset) - train_size
 train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=32)
+train_loader = DataLoader(train_dataset, batch_size=512, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=512)
 
 # ==== 2. Define the LSTM Model ====
 class LSTMClassifier(nn.Module):
@@ -71,10 +71,10 @@ class LSTMClassifier(nn.Module):
 
 model = LSTMClassifier(input_size=input_size, hidden_size=4, num_layers=2).to(device)
 criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
-optimizer = optim.Adam(model.parameters(), lr=0.0001)
+optimizer = optim.Adam(model.parameters(), lr=0.0035)
 
 # ==== 4. Training Loop ====
-num_epochs = 501
+num_epochs = 2001
 for epoch in range(num_epochs):
     model.train()
     total_loss = 0

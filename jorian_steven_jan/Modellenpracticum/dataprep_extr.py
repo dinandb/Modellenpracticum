@@ -55,7 +55,7 @@ def last_extremas(df, lookback, column):
              
 #print(last_extremas(df, 3, 'z_velocity'))       
       
-def data_prep(df, column, lookback, time_increment):
+def data_prep1(df, column, lookback, time_increment):
     array = last_extremas(df, lookback, column)
     steps = time_increment*5
     if time_increment == 0:
@@ -74,6 +74,24 @@ def data_prep(df, column, lookback, time_increment):
     dataframe = pd.DataFrame(array_2, columns=kolommen)
     return dataframe
 
+def data_prep2(df, column, lookback, time_increment):
+    extremas_ind, extremas = abs_extr(df, column, len=len(df.index))
+    array = last_extremas(df, lookback, column)
 
-df = data_prep(df, 'z_velocity', 5, 0)
-df.to_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\heave_speed_for_model.csv")
+    array_2 = []
+    QP = df['QP'].to_numpy()
+    for i in extremas_ind[0:len(extremas_ind) - lookback - 5]:
+        if 0.0 in QP[i: i + 150]:
+            lijst = array[i][1]
+            array_2.append(np.append(lijst, 0.0))
+        else:
+            lijst = array[i][1]
+            array_2.append(np.append(lijst, 1.0))   
+    kolommen = [str(i) for i in range(lookback)]
+    kolommen += ['label']
+    dataframe = pd.DataFrame(array_2, columns=kolommen)
+    return dataframe
+
+
+df = data_prep2(df, 'z_velocity', 5, 0)
+df.to_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\new_data1212.csv")
