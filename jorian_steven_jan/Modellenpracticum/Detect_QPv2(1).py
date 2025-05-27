@@ -5,6 +5,10 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 from scipy import special
 
+export_csv = False
+plotting = True
+length_plot = 2000
+
 def move(sw,su,h,y,r,p,pos):
     """
     Given a three-dimensional point pos, return the position of the point when rotated and translated
@@ -65,6 +69,7 @@ def heli_incl(heave, sway, surge, yaw, roll, pitch, time, pos_helideck):
 #file_path = "C:/Users/caspe/OneDrive/Documents/Programming/Modellenpracticum/QPtest/out_clean_wavespreading_36000s.csv"
 # df = pd.read_csv(file_path, header=[0,1])
 df = pd.read_csv(r'C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\5415M_Hs=4m_Tp=10s_10h_clean.csv', header=[0,1])
+df = df[0:length_plot]
 #Main data variables:
 heave, sway, surge, yaw, roll, pitch = np.array(df['z_wf']), np.array(df['y_wf']),np.array(df['x_wf']),np.array(df['psi_wf']),np.array(df['phi_wf']),np.array(df['theta_wf'])
 time = np.array(df['t'])
@@ -117,26 +122,29 @@ df = df.assign(QP=QP)
 # print(QPstart)
 #print(QPstart[1])
 #exporting data (choose your own path)
-df.to_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs4_data_withQP2.csv", index = False, header=True) 
+if export_csv == True:  
+    df.to_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs4_data_withQP2.csv", index = False, header=True) 
 
 #making dataframe for exporting the QPstart times
 QP_start_array = []
 for i in range(len(QPstart)):
     QP_start_array += [QPstart[i][0]]
 
-QP_start_data = pd.DataFrame({'QPstart_time': QP_start_array})
-print(QP_start_data.head(10))
+if export_csv == True:
+    QP_start_data = pd.DataFrame({'QPstart_time': QP_start_array})
+#print(QP_start_data.head(10))
 # print(QP_start_data.head())
 # print(QP_start_data.info)
 
 #QP_start_data.to_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs4_QPstarts.csv", index = False, header=True) 
 
 #making plots
-# fig, ax = plt.subplots(1, 1, figsize=(12, 5))
-# for i in range(len(QPstart)):
-#     ax.axvspan(QPstart[i].item(), QPend[i].item(), facecolor='green', alpha=0.2)
-# ax.plot(time, Heave_Speed)
-# ax.set_xlabel("Time (s)")
-# ax.set_ylabel("Heave speed")
-# ax.set_title("QPs")
-# plt.show()
+if plotting == True:
+    fig, ax = plt.subplots(1, 1, figsize=(12, 5))
+    for i in range(len(QPstart)):
+        ax.axvspan(QPstart[i].item(), QPend[i].item(), facecolor='green', alpha=0.2)
+    ax.plot(time, Heave_Speed)
+    ax.set_xlabel("Time (s)")
+    ax.set_ylabel("Heave speed")
+    ax.set_title("QPs")
+    plt.show()
