@@ -9,14 +9,14 @@ import numpy as np
 from sklearn.utils import shuffle
 
 
-seq_length = 150
+seq_length = 5
 input_size = 1
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
 
-df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs4_heavespeed_crit.csv")
+df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\heave_speed_for_model.csv")
 
 ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
 ratio = torch.tensor([min(ratio, 15.0)], device=device)
@@ -35,19 +35,18 @@ train_size = int(0.75 * len(dataset))
 val_size = len(dataset) - train_size
 train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
 
-train_loader = DataLoader(train_dataset, batch_size=512, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=512)
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=32)
 
 # ==== 2. Define the LSTM Model ====
 class LSTMClassifier(nn.Module):
-    def __init__(self, input_size, hidden_size, num_layers, dropout):
+    def __init__(self, input_size, hidden_size, num_layers):
         super(LSTMClassifier, self).__init__()
         self.lstm = nn.LSTM(input_size=input_size,
                             hidden_size=hidden_size,
                             num_layers=num_layers,
                             batch_first=True,
-                            dropout=dropout,
-                            bidirectional=True)
+                            bidirectional=False)
         self.fc = nn.Linear(hidden_size, 1)  # Output single logit
         
         for name, param in self.lstm.named_parameters():
@@ -70,12 +69,12 @@ class LSTMClassifier(nn.Module):
 # ==== 3. Training Setup ====
 
 
-model = LSTMClassifier(input_size=input_size, hidden_size=32, num_layers=2, dropout=0.2).to(device)
+model = LSTMClassifier(input_size=input_size, hidden_size=4, num_layers=2).to(device)
 criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
 # ==== 4. Training Loop ====
-num_epochs = 1001
+num_epochs = 501
 for epoch in range(num_epochs):
     model.train()
     total_loss = 0
