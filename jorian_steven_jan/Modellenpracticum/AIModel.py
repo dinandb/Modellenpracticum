@@ -31,9 +31,10 @@ print(device)
 #ratio = (len(y)-sum(y))/sum(y)
 
 
-df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs4_heavespeed_crit.csv")
+df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\new_data333.csv")
+df = df.drop_duplicates()
 df = shuffle(df)
-len_seq = 150
+len_seq = 5
 
 ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
 ratio = torch.tensor([min(ratio, 15.0)], device=device)
@@ -75,11 +76,11 @@ class LinModel(nn.Module):
     def __init__(self):
         super().__init__()
         # 2. Create 2 nn.Linear layers capable of handling X and y input and output shapes
-        self.layer_1 = nn.Linear(in_features=no_input, out_features=64) # takes in 8 features (X), produces 5 features
-        self.layer_2 = nn.Linear(in_features=64, out_features=64)
-        self.layer_3 = nn.Linear(in_features=64, out_features=64)
-        self.layer_4 = nn.Linear(in_features=64, out_features=64) # takes in 2 features (X), produces 5 features
-        self.layer_5 = nn.Linear(in_features=64, out_features=1) # takes in 5 features, produces 1 feature (y)
+        self.layer_1 = nn.Linear(in_features=no_input, out_features=8) # takes in 8 features (X), produces 5 features
+        self.layer_2 = nn.Linear(in_features=8, out_features=8)
+        self.layer_3 = nn.Linear(in_features=8, out_features=8)
+        self.layer_4 = nn.Linear(in_features=8, out_features=8) # takes in 2 features (X), produces 5 features
+        self.layer_5 = nn.Linear(in_features=8, out_features=1) # takes in 5 features, produces 1 feature (y)
         self.relu = nn.ReLU()
     # 3. Define a forward method containing the forward pass computation
     def forward(self, x):
@@ -118,7 +119,7 @@ def recall_fn(y_true: torch.Tensor, y_pred: torch.Tensor):
 
 
 # Set the number of epochs
-epochs = 100000
+epochs = 1050
 
 # Put data to target device
 X_train, y_train = X_train.to(device), y_train.to(device)
@@ -168,7 +169,7 @@ for epoch in range(epochs):
         test_recall = recall_fn(y_true=y_test, y_pred=test_pred)
 
     # Print out what's happening every 10 epochs
-    if epoch % 1000 == 0:
+    if epoch % 10 == 0:
         print(f"Epoch: {epoch} | Test acc: {test_acc:.2f}% | Test prec: {test_precision:.2f}% | Test recall {test_recall:.2f}%"  )
 
 
