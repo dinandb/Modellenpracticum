@@ -7,6 +7,9 @@ from torch import nn
 from torch.utils.data import DataLoader, TensorDataset, random_split
 import numpy as np
 from sklearn.utils import shuffle
+import optuna
+from sklearn.metrics import f1_score
+
 
 
 seq_length = 250
@@ -67,55 +70,112 @@ class LSTMClassifier(nn.Module):
         return out.squeeze()
 
 
-# ==== 3. Training Setup ====
 
+def objective(trial):
+    # === Hyperparameters to optimize ===
+    hidden_size = trial.suggest_int('hidden_size', 32, 256, step=32)
+    num_layers = trial.suggest_int('num_layers', 1, 3)
+    lr = trial.suggest_float('lr', 1e-4, 1e-2, log=True)
 
-model = LSTMClassifier(input_size=input_size, hidden_size=64, num_layers=2).to(device)
-criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
-optimizer = optim.Adam(model.parameters(), lr=0.0045)
+    # === Model setup ===
+    model = LSTMClassifier(input_size=input_size, hidden_size=hidden_size, num_layers=num_layers).to(device)
+    criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
+    optimizer = optim.Adam(model.parameters(), lr=lr)
 
-# ==== 4. Training Loop ====
-num_epochs = 251
-for epoch in range(num_epochs):
-    model.train()
-    total_loss = 0
-    for inputs, labels in train_loader:
-        inputs, labels = inputs.to(device), labels.to(device)
-        outputs = model(inputs)
-        loss = criterion(outputs, labels)
-        optimizer.zero_grad()
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
-        optimizer.step()
-        total_loss += loss.item()
+    # === Training Loop ===
+    for epoch in range(30):  # fewer epochs for faster optimization
+        model.train()
+        for inputs, labels in train_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            optimizer.zero_grad()
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
+            optimizer.step()
 
-    # Validation
+    # === Validation Evaluation ===
     model.eval()
-    val_loss = 0
-    correct = 0
-    total = 0
-    TP = 0
-    FN = 0
-    FP = 0
+    all_preds = []
+    all_labels = []
     with torch.no_grad():
         for inputs, labels in val_loader:
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            val_loss += loss.item()
             preds = torch.round(torch.sigmoid(outputs)).float()
-            correct += (preds == labels).sum().item()
-            TP += ((preds == 1) & (labels == 1)).sum().item()
-            FN += ((preds == 0) & (labels == 1)).sum().item()
-            FP += ((preds == 1) & (labels == 0)).sum().item()
-            total += labels.size(0)
-    if epoch % 10 == 0:
-        print(f"Epoch [{epoch+1}], "
-          f"Train Loss: {total_loss/len(train_loader):.2f}, "
-          f"Val Acc: {correct/total:.2f}, "
-          f"Val Recall: {TP / (TP + FN + 1e-8):.2f}, "
-          f"Val Prec: {TP / (TP + FP + 1e-8):.2f}")
-        print("TP", TP, "FN", FN, "FP", FP)
+            all_preds.append(preds.cpu())
+            all_labels.append(labels.cpu())
+
+    all_preds = torch.cat(all_preds).numpy()
+    all_labels = torch.cat(all_labels).numpy()
+    
+    f1 = f1_score(all_labels, all_preds)
+    return f1
+
+
+
+
+# model = LSTMClassifier(input_size=input_size, hidden_size=64, num_layers=2).to(device)
+# criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
+# optimizer = optim.Adam(model.parameters(), lr=0.0045)
+
+# # ==== 4. Training Loop ====
+# num_epochs = 251
+# for epoch in range(num_epochs):
+#     model.train()
+#     total_loss = 0
+#     for inputs, labels in train_loader:
+#         inputs, labels = inputs.to(device), labels.to(device)
+#         outputs = model(inputs)
+#         loss = criterion(outputs, labels)
+#         optimizer.zero_grad()
+#         loss.backward()
+#         torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
+#         optimizer.step()
+#         total_loss += loss.item()
+
+#     # Validation
+#     model.eval()
+#     val_loss = 0
+#     correct = 0
+#     total = 0
+#     TP = 0
+#     FN = 0
+#     FP = 0
+#     with torch.no_grad():
+#         for inputs, labels in val_loader:
+#             inputs, labels = inputs.to(device), labels.to(device)
+#             outputs = model(inputs)
+#             loss = criterion(outputs, labels)
+#             val_loss += loss.item()
+#             preds = torch.round(torch.sigmoid(outputs)).float()
+#             correct += (preds == labels).sum().item()
+#             TP += ((preds == 1) & (labels == 1)).sum().item()
+#             FN += ((preds == 0) & (labels == 1)).sum().item()
+#             FP += ((preds == 1) & (labels == 0)).sum().item()
+#             total += labels.size(0)
+#     if epoch % 10 == 0:
+#         print(f"Epoch [{epoch+1}], "
+#           f"Train Loss: {total_loss/len(train_loader):.2f}, "
+#           f"Val Acc: {correct/total:.2f}, "
+#           f"Val Recall: {TP / (TP + FN + 1e-8):.2f}, "
+#           f"Val Prec: {TP / (TP + FP + 1e-8):.2f}")
+#         print("TP", TP, "FN", FN, "FP", FP)
+
+
+study = optuna.create_study(direction='maximize')
+study.optimize(objective, n_trials=15)
+
+print("Best hyperparameters:", study.best_params)
+print("Best F1-score:", study.best_value)
+
+
+best_params = study.best_params
+model = LSTMClassifier(input_size=input_size,
+                       hidden_size=best_params['hidden_size'],
+                       num_layers=best_params['num_layers']).to(device)
+optimizer = optim.Adam(model.parameters(), lr=best_params['lr'])
+
 
 def plot_decision_boundary_lstm(model, val_dataset, device, resolution=100):
     model.eval()
