@@ -9,14 +9,14 @@ import numpy as np
 from sklearn.utils import shuffle
 
 
-seq_length = 5
+seq_length = 250
 input_size = 1
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
 
-df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\new_data333.csv")
+df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\wave_prepped_threshold.csv")
 df = df.drop_duplicates()
 print(len(df.index))
 ratio = (len(df[df['label']==0.0].index))/(len(df[df['label']==1.0].index))
@@ -47,9 +47,9 @@ class LSTMClassifier(nn.Module):
                             hidden_size=hidden_size,
                             num_layers=num_layers,
                             batch_first=True,
-                            bidirectional=False)
-        self.fc = nn.Linear(hidden_size, 1)  # Output single logit
-        
+                            bidirectional=True)
+        #self.fc = nn.Linear(hidden_size, 1)  # Output single logit
+        self.fc = nn.Linear(hidden_size * 2, 1) #if bidirectional
         for name, param in self.lstm.named_parameters():
             if 'weight' in name:
                 nn.init.xavier_uniform_(param)
@@ -70,12 +70,12 @@ class LSTMClassifier(nn.Module):
 # ==== 3. Training Setup ====
 
 
-model = LSTMClassifier(input_size=input_size, hidden_size=8, num_layers=2).to(device)
+model = LSTMClassifier(input_size=input_size, hidden_size=64, num_layers=2).to(device)
 criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
 optimizer = optim.Adam(model.parameters(), lr=0.0045)
 
 # ==== 4. Training Loop ====
-num_epochs = 501
+num_epochs = 251
 for epoch in range(num_epochs):
     model.train()
     total_loss = 0

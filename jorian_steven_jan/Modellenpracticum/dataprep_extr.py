@@ -5,7 +5,6 @@ import pandas as pd
 
 #hier laad je de dataset in de QP start vanuit Detect_QPv2(1).py
 df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs4_data_without_units2.csv", low_memory = True, header = [0,1])
-#df = df[1:10000]
 #QP_start = pd.read_csv(r'C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Data4_QPstarts.csv', dtype = np.float64)
 #print(QP_start.head())
 def find(n, array):
@@ -39,6 +38,9 @@ def abs_extr(df, column, len):
     return extremas_ind, extremas
 
 def last_extremas(df, lookback, column):
+    if lookback < 2:
+        print("lookback cant be smaller then 2")
+        return
     extremas_ind, extremas = abs_extr(df, column, len=len(df.index))
     array = []
     counter = lookback - 2
@@ -55,7 +57,7 @@ def last_extremas(df, lookback, column):
              
 #print(last_extremas(df, 3, 'z_velocity'))       
       
-def data_prep1(df, column, lookback, time_increment):
+def data_prep_QP1(df, column, lookback, time_increment):
     array = last_extremas(df, lookback, column)
     steps = time_increment*5
     if time_increment == 0:
@@ -74,7 +76,7 @@ def data_prep1(df, column, lookback, time_increment):
     dataframe = pd.DataFrame(array_2, columns=kolommen)
     return dataframe
 
-def data_prep2(df, column, lookback, time_increment):
+def data_prep_QP2(df, column, lookback, time_increment):
     extremas_ind, extremas = abs_extr(df, column, len=len(df.index))
     array = last_extremas(df, lookback, column)
 
@@ -95,25 +97,60 @@ def data_prep2(df, column, lookback, time_increment):
 def data_prep3(df, column, lookback, threshold):
     extremas_ind, extremas = abs_extr(df, column, len=len(df.index))
     array = last_extremas(df, lookback, column)
+    # print(array)
+    # print(extremas_ind)
 
     array_2 = []
-    heave_rate = df[column].to_numpy()
+    column = df[column].to_numpy()
     
-    for i in extremas_ind[0:len(extremas_ind) - lookback*2]:
+    for i in extremas_ind[lookback - 1:len(extremas_ind) - lookback - 1]:
         x = True
-        for j in heave_rate[i:i + 150]:
+        for j in column[i:i + 150]:
             if abs(j) >= threshold:
                 x = False
         if x == True:
-            lijst = array[i][1]
+            lijst = array[i - extremas_ind[lookback - 1]][1]
             array_2.append(np.append(lijst, 1.0))
         if x == False:
-            lijst = array[i][1]
+            lijst = array[i - extremas_ind[lookback - 1]][1]
             array_2.append(np.append(lijst, 0.0))
     kolommen = [str(i) for i in range(lookback)]
     kolommen += ['label']
     dataframe = pd.DataFrame(array_2, columns=kolommen)
     return dataframe
 
-df = data_prep3(df, 'z_velocity', 5, 1.0)
-df.to_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\new_data333.csv")
+
+def dataprep_wave(df, column, threshold, time_increment, lookback_time):
+    steps = int(time_increment*5)
+    if steps == 0:
+        steps = 1
+    array_2 = []
+    column = df[column].to_numpy()
+    lookback = int(lookback_time*5)
+
+    for i in range(lookback, len(df.index) - 150 - int(time_increment + 1), steps):
+        x = True
+        for j in column[i:i + 50]:
+            if abs(j) >= threshold:
+                x = False
+        if x == True:
+            lijst = column[i - lookback: i]
+            array_2.append(np.append(lijst, 1.0))
+        if x == False:
+            lijst = column[i - lookback: i]
+            array_2.append(np.append(lijst, 0.0))
+    kolommen = [str(i) for i in range(lookback)]
+    kolommen += ['label']
+    dataframe = pd.DataFrame(array_2, columns=kolommen)
+    return dataframe
+
+# df = data_prep3(df, 'z_velocity', 5, 1.0)
+# print(df.info)
+# print(df['label'].value_counts())
+
+df = dataprep_wave(df, 'z_velocity', 1.0, 10.0, 50.0)
+print(df.info)
+print(df['label'].value_counts())
+
+
+df.to_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\wave_prepped_threshold.csv")
