@@ -214,7 +214,7 @@ for len_interval in range(5, 51):
 
 
 
-    model = LSTMClassifier(input_size=input_size, hidden_size=64, num_layers=2).to(device)
+    model = LSTMClassifier(input_size=input_size, hidden_size=len_interval, num_layers=2).to(device)
     criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
     optimizer = optim.Adam(model.parameters(), lr=0.005)
 
@@ -257,7 +257,7 @@ for len_interval in range(5, 51):
         f1 = 2*TP / (2*TP + FN + FP)
         if max_f1 < f1:
             max_f1 = f1
-        if epoch % 10 == 0:
+        if epoch % 100 == 0:
             print(f"Epoch [{epoch+1}], "
             f"Train Loss: {total_loss/len(train_loader):.2f}, "
             f"Val Acc: {correct/total:.2f}, "
