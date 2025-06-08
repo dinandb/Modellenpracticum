@@ -161,10 +161,10 @@ print(device)
 
 f1_array = []
 acc_array = []
-array = [i for i in range(5, 50)]
-for len_interval in range(5, 50):
+array = [i for i in range(5, 31)]
+for len_interval in range(5, 31):
     print(len_interval)
-    data = dataprep_wave(df, 'z_velocity', 1.0, 50.0, 50.0, len_interval)    
+    data = dataprep_wave(df, 'phi_wf', 0.044, 50.0, 50.0, len_interval)    
     data = data.drop_duplicates()
     print(data['label'].value_counts())
     ratio = (len(data[data['label']==0.0].index))/(len(data[data['label']==1.0].index))
@@ -222,7 +222,7 @@ for len_interval in range(5, 50):
 
     model = LSTMClassifier(input_size=input_size, hidden_size=(32), num_layers=2).to(device)
     criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
-    optimizer = optim.Adam(model.parameters(), lr=0.010)
+    optimizer = optim.Adam(model.parameters(), lr=0.0085)
 
     # ==== 4. Training Loop ====
     num_epochs = 250
@@ -248,6 +248,7 @@ for len_interval in range(5, 50):
         TP = 0
         FN = 0
         FP = 0
+        TN = 0
         with torch.no_grad():
             for inputs, labels in val_loader:
                 inputs, labels = inputs.to(device), labels.to(device)
@@ -259,19 +260,22 @@ for len_interval in range(5, 50):
                 TP += ((preds == 1) & (labels == 1)).sum().item()
                 FN += ((preds == 0) & (labels == 1)).sum().item()
                 FP += ((preds == 1) & (labels == 0)).sum().item()
+                TN += ((preds == 0) & (labels == 0)).sum().item()
                 total += labels.size(0)
         fb = f_beta(1, TP, FP, 0, FN)
-        if max_fb < fb:
+        if max_fb <= fb:
             max_fb = fb
             m_acc = correct/total
+            m_epoch = epoch
         if epoch % 50 == 0:
             print(f"Epoch [{epoch+1}], "
             f"Train Loss: {total_loss/len(train_loader):.2f}, "
             f"Val Acc: {correct/total:.2f}, "
             f"Val Recall: {TP / (TP + FN + 1e-8):.2f}, "
             f"Val Prec: {TP / (TP + FP + 1e-8):.2f}")
-            print("TP", TP, "FN", FN, "FP", FP)
+            print("TP", TP, "FN", FN, "FP", FP, "TN", TN)
     print(max_fb)
+    print(m_epoch)
     f1_array += [max_fb]
     acc_array += [m_acc]
 
