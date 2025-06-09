@@ -104,7 +104,7 @@ def data_prep3(df, column, lookback, threshold, time_interval):
     array_2 = []
     column = df[column].to_numpy()
     
-    for i in extremas_ind[lookback - 1:len(extremas_ind) - lookback - 1]:
+    for i in extremas_ind[lookback - 1:len(extremas_ind) - lookback - 1:lookback]:
         x = True
         for j in column[i:i + time_interval]:
             if abs(j) >= threshold:
@@ -230,14 +230,13 @@ for len_interval in range(5, 31):
     lr = lr
     model = LSTMClassifier(input_size=input_size, hidden_size=(32), num_layers=2).to(device)
     criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.005)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,
                                                                     T_0=2,
                                                                     T_mult=2, 
                                                                     eta_min=1e-6)
 
     # ==== 4. Training Loop ====
-    num_epochs = 2
     max_fb = 0.0
     for epoch in range(num_epochs):
         model.train()
