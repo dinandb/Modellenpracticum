@@ -7,6 +7,7 @@ from torch import nn
 from torch.utils.data import DataLoader, TensorDataset, random_split
 import numpy as np
 from sklearn.metrics import f1_score
+import torch.optim.lr_scheduler as lr_scheduler
 
 def f_beta(beta, TP, FP, TN, FN):
     return (1 + beta**2)*TP / ((1 + beta**2)*TP + (beta**2)*FN + FP)
@@ -153,8 +154,13 @@ def dataprep_wave(df, column, threshold, time_increment, lookback_time, lookforw
 
 
 
+
+
 seq_length = 250
 input_size = 1
+lr = 0.001
+num_epochs = 250
+
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
@@ -164,10 +170,11 @@ acc_array = []
 array = [i for i in range(5, 31)]
 for len_interval in range(5, 31):
     print(len_interval)
-    data = dataprep_wave(df, 'phi_wf', 0.044, 50.0, 50.0, len_interval)    
+    data = dataprep_wave(df, 'z_wf', 1.0, 50.0, 50.0, len_interval)    
     data = data.drop_duplicates()
     print(data['label'].value_counts())
     ratio = (len(data[data['label']==0.0].index))/(len(data[data['label']==1.0].index))
+    print("ratio is: ", ratio)
     ratio = torch.tensor(ratio, device=device)
 
     wo = data[[str(i) for i in range(seq_length)]]
@@ -213,19 +220,24 @@ for len_interval in range(5, 31):
             last_hidden = lstm_out[:, -1, :]  # Use the last time step
             out = self.fc(last_hidden)
             return out.squeeze()
+        
 
 
 
 
 
 
-
+    lr = lr
     model = LSTMClassifier(input_size=input_size, hidden_size=(32), num_layers=2).to(device)
     criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
-    optimizer = optim.Adam(model.parameters(), lr=0.0085)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,
+                                                                    T_0=2,
+                                                                    T_mult=2, 
+                                                                    eta_min=1e-6)
 
     # ==== 4. Training Loop ====
-    num_epochs = 250
+    num_epochs = 2
     max_fb = 0.0
     for epoch in range(num_epochs):
         model.train()
@@ -236,9 +248,10 @@ for len_interval in range(5, 31):
             loss = criterion(outputs, labels)
             optimizer.zero_grad()
             loss.backward()
-            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=8.0)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=18.0)
             optimizer.step()
             total_loss += loss.item()
+        scheduler.step()
 
         # Validation
         model.eval()
@@ -267,15 +280,16 @@ for len_interval in range(5, 31):
             max_fb = fb
             m_acc = correct/total
             m_epoch = epoch
-        if epoch % 50 == 0:
+        if epoch % 5 == 0:
             print(f"Epoch [{epoch+1}], "
             f"Train Loss: {total_loss/len(train_loader):.2f}, "
             f"Val Acc: {correct/total:.2f}, "
             f"Val Recall: {TP / (TP + FN + 1e-8):.2f}, "
+            f"Val FPR: {FP / (FP + TN + 1e-8):.2f}, "
             f"Val Prec: {TP / (TP + FP + 1e-8):.2f}")
             print("TP", TP, "FN", FN, "FP", FP, "TN", TN)
     print(max_fb)
-    print(m_epoch)
+    print("best peoch", m_epoch)
     f1_array += [max_fb]
     acc_array += [m_acc]
 
