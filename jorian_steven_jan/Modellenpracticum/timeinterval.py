@@ -167,10 +167,12 @@ print(device)
 
 f1_array = []
 acc_array = []
+RFPR_array = []
+epoch_array = []
 array = [i for i in range(5, 31)]
 for len_interval in range(5, 31):
     print(len_interval)
-    data = dataprep_wave(df, 'z_wf', 1.0, 50.0, 50.0, len_interval)    
+    data = dataprep_wave(df, 'z_velocity', 1.0, 50.0, 50.0, len_interval)    
     data = data.drop_duplicates()
     print(data['label'].value_counts())
     ratio = (len(data[data['label']==0.0].index))/(len(data[data['label']==1.0].index))
@@ -227,17 +229,16 @@ for len_interval in range(5, 31):
 
 
 
-    lr = lr
     model = LSTMClassifier(input_size=input_size, hidden_size=(32), num_layers=2).to(device)
     criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
-    optimizer = optim.Adam(model.parameters(), lr=0.005)
+    optimizer = optim.Adam(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,
                                                                     T_0=2,
                                                                     T_mult=2, 
                                                                     eta_min=1e-6)
 
     # ==== 4. Training Loop ====
-    max_fb = 0.0
+    max_average = 0.0
     for epoch in range(num_epochs):
         model.train()
         total_loss = 0
@@ -275,9 +276,13 @@ for len_interval in range(5, 31):
                 TN += ((preds == 0) & (labels == 0)).sum().item()
                 total += labels.size(0)
         fb = f_beta(1, TP, FP, 0, FN)
-        if max_fb <= fb:
-            max_fb = fb
-            m_acc = correct/total
+        RFPR = 1 - (FP / (FP + TN + 1e-8))
+        Acc = correct/total
+        average = (1/3)*(fb + RFPR + Acc)
+        if max_average <= average:
+            max_average = average
+            max_acc = Acc
+            max_RFPR = RFPR
             m_epoch = epoch
         if epoch % 5 == 0:
             print(f"Epoch [{epoch+1}], "
@@ -287,16 +292,22 @@ for len_interval in range(5, 31):
             f"Val FPR: {FP / (FP + TN + 1e-8):.2f}, "
             f"Val Prec: {TP / (TP + FP + 1e-8):.2f}")
             print("TP", TP, "FN", FN, "FP", FP, "TN", TN)
-    print(max_fb)
-    print("best peoch", m_epoch)
-    f1_array += [max_fb]
-    acc_array += [m_acc]
+    print(max_average)
+    print("best epoch", m_epoch)
+    f1_array += [max_average]
+    acc_array += [max_acc]
+    RFPR_array += [max_RFPR]
+    epoch_array += [m_epoch]
 
 
 plt.plot(array, f1_array, label='F_1')
 plt.plot(array, acc_array, label = "acc")
+plt.plot(array, RFPR_array, label = "RFPR")
 plt.xlabel('Length of time interval')
-plt.ylabel('Acc/F1')
+plt.ylabel('Acc/F1/RFPR')
 plt.title('Autocorrelation of absolute value of heave rate extrema')
 plt.legend()
+plt.show()
+
+plt.plot(array, epoch_array)
 plt.show()
