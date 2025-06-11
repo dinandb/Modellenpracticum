@@ -8,6 +8,23 @@ from torch.utils.data import DataLoader, TensorDataset, random_split
 import numpy as np
 from sklearn.metrics import f1_score
 import torch.optim.lr_scheduler as lr_scheduler
+import matplotlib
+
+# matplotlib.use('pgf')  # Set PGF backend before importing pyplot
+# matplotlib.rcParams.update({
+#     "pgf.texsystem": "pdflatex",
+#     'font.family': 'serif',
+#     'font.size' : 8,
+#     'pgf.rcfonts': False,
+#     'text.usetex': True,
+#     'axes.titlesize': 14,
+#     'axes.labelsize': 11,
+#     'lines.linewidth' : 0.5,
+#      'lines.markersize'  : 5,
+#     'xtick.labelsize' : 8,
+#     'ytick.labelsize':8})
+
+
 
 def f_beta(beta, TP, FP, TN, FN):
     return (1 + beta**2)*TP / ((1 + beta**2)*TP + (beta**2)*FN + FP)
@@ -160,8 +177,8 @@ seq_length = 250
 input_size = 1
 lr = 0.001
 num_epochs = 250
-
-
+kolom = 'z_wf'
+thres = 1.0
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
@@ -172,7 +189,7 @@ epoch_array = []
 array = [i for i in range(5, 31)]
 for len_interval in range(5, 31):
     print(len_interval)
-    data = dataprep_wave(df, 'z_velocity', 1.0, 50.0, 50.0, len_interval)    
+    data = dataprep_wave(df, kolom, thres, 50.0, 50.0, len_interval)    
     data = data.drop_duplicates()
     print(data['label'].value_counts())
     ratio = (len(data[data['label']==0.0].index))/(len(data[data['label']==1.0].index))
@@ -229,7 +246,7 @@ for len_interval in range(5, 31):
 
 
 
-    model = LSTMClassifier(input_size=input_size, hidden_size=(32), num_layers=2).to(device)
+    model = LSTMClassifier(input_size=input_size, hidden_size=(64), num_layers=3).to(device)
     criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,
@@ -303,11 +320,10 @@ for len_interval in range(5, 31):
 plt.plot(array, f1_array, label='F_1')
 plt.plot(array, acc_array, label = "acc")
 plt.plot(array, RFPR_array, label = "RFPR")
-plt.xlabel('Length of time interval')
+plt.xlabel('Length of prediction window')
 plt.ylabel('Acc/F1/RFPR')
-plt.title('Autocorrelation of absolute value of heave rate extrema')
+plt.title('Acc/F1/RFPR for different prediction windows for ', kolom)
 plt.legend()
+# plt.savefig(r'C:\Users\steve\OneDrive\Bureaublad\Predictionwindowheaverate.pgf')
 plt.show()
-
-plt.plot(array, epoch_array)
-plt.show()
+print(epoch_array)
