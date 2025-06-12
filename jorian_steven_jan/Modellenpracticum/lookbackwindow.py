@@ -87,7 +87,7 @@ array = [i for i in range(30, 71)]
 for len_lookback in range(30, 71):
     seq_length = len_lookback*5
     print(len_lookback)
-    data = dataprep_wave(df, 'z_wf', .95, 70.0, len_lookback, 14.0)    
+    data = dataprep_wave(df, 'z_velocity', 1.0, 70.0, len_lookback, 12.0)    
     data = data.drop_duplicates()
     print(data['label'].value_counts())
     ratio = (len(data[data['label']==0.0].index))/(len(data[data['label']==1.0].index))
@@ -226,7 +226,7 @@ plt.xlabel('Length of lookback window')
 plt.ylabel('Acc/F1/RFPR')
 plt.title('Acc/F1/RFPR for different lookback windows')
 plt.legend()
-plt.savefig(r'C:\Users\steve\OneDrive\Bureaublad\Lookbackwindowheave2.pgf')
+plt.savefig(r'C:\Users\steve\OneDrive\Bureaublad\Lookbackwindowheaverate22.pgf')
 
 
 print(epoch_array)

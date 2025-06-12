@@ -10,21 +10,22 @@ from sklearn.metrics import f1_score
 import torch.optim.lr_scheduler as lr_scheduler
 import matplotlib
 
-# matplotlib.use('pgf')  # Set PGF backend before importing pyplot
-# matplotlib.rcParams.update({
-#     "pgf.texsystem": "pdflatex",
-#     'font.family': 'serif',
-#     'font.size' : 8,
-#     'pgf.rcfonts': False,
-#     'text.usetex': True,
-#     'axes.titlesize': 14,
-#     'axes.labelsize': 11,
-#     'lines.linewidth' : 0.5,
-#      'lines.markersize'  : 5,
-#     'xtick.labelsize' : 8,
-#     'ytick.labelsize':8})
+pgf_plot = False
 
-
+if pgf_plot == True:
+    matplotlib.use('pgf')  # Set PGF backend before importing pyplot
+    matplotlib.rcParams.update({
+        "pgf.texsystem": "pdflatex",
+        'font.family': 'serif',
+        'font.size' : 8,
+        'pgf.rcfonts': False,
+        'text.usetex': True,
+        'axes.titlesize': 14,
+        'axes.labelsize': 11,
+        'lines.linewidth' : 0.5,
+        'lines.markersize'  : 5,
+        'xtick.labelsize' : 8,
+        'ytick.labelsize':8})
 
 def f_beta(beta, TP, FP, TN, FN):
     return (1 + beta**2)*TP / ((1 + beta**2)*TP + (beta**2)*FN + FP)
@@ -72,58 +73,20 @@ def last_extremas(df, lookback, column):
     print(len(array))
     return array
              
-#print(last_extremas(df, 3, 'z_velocity'))       
       
-def data_prep_QP1(df, column, lookback, time_increment):
-    array = last_extremas(df, lookback, column)
-    steps = time_increment*5
-    if time_increment == 0:
-        steps = 1
-    array_2 = []
-    QP = df['QP'].to_numpy()
-    for i in range(array[0][0], array[-1][0] - 150, steps):
-        if 0.0 in QP[i: i + 150]:
-            lijst = array[i][1]
-            array_2.append(np.append(lijst, 0.0))
-        else:
-            lijst = array[i][1]
-            array_2.append(np.append(lijst, 1.0))   
-    kolommen = [str(i) for i in range(lookback)]
-    kolommen += ['label']
-    dataframe = pd.DataFrame(array_2, columns=kolommen)
-    return dataframe
-
-def data_prep_QP2(df, column, lookback, time_increment):
-    extremas_ind, extremas = abs_extr(df, column, len=len(df.index))
-    array = last_extremas(df, lookback, column)
-
-    array_2 = []
-    QP = df['QP'].to_numpy()
-    for i in extremas_ind[0:len(extremas_ind) - lookback - 5]:
-        if 0.0 in QP[i: i + 150]:
-            lijst = array[i][1]
-            array_2.append(np.append(lijst, 0.0))
-        else:
-            lijst = array[i][1]
-            array_2.append(np.append(lijst, 1.0))   
-    kolommen = [str(i) for i in range(lookback)]
-    kolommen += ['label']
-    dataframe = pd.DataFrame(array_2, columns=kolommen)
-    return dataframe
-
-def data_prep3(df, column, lookback, threshold, time_interval):
+def data_prep3(df, column, lookback, threshold, predicition_window, max_lookback):
     extremas_ind, extremas = abs_extr(df, column, len=len(df.index))
     array = last_extremas(df, lookback, column)
     # print(array)
     # print(extremas_ind)
-    time_interval = int(5*time_interval)
+    predicition_window = int(5*predicition_window)
 
     array_2 = []
     column = df[column].to_numpy()
     
-    for i in extremas_ind[lookback - 1:len(extremas_ind) - lookback - 1:lookback]:
+    for i in extremas_ind[lookback - 1:len(extremas_ind) - lookback - 1:max_lookback]:
         x = True
-        for j in column[i:i + time_interval]:
+        for j in column[i:i + predicition_window]:
             if abs(j) >= threshold:
                 x = False
         if x == True:
@@ -138,47 +101,12 @@ def data_prep3(df, column, lookback, threshold, time_interval):
     return dataframe
 
 
-def dataprep_wave(df, column, threshold, time_increment, lookback_time, lookforward_time):
-    steps = int(time_increment*5)
-    if steps == 0:
-        steps = 1
-    array_2 = []
-    column = df[column].to_numpy()
-    lookback = int(lookback_time*5)
-    lookforward = int(lookforward_time*5)
 
-
-    for i in range(lookback, len(df.index) - lookforward - 1, steps):
-        x = True
-        for j in column[i:i + lookforward]:
-            if abs(j) >= threshold:
-                x = False
-        if x == True:
-            lijst = column[i - lookback: i]
-            array_2.append(np.append(lijst, 1.0))
-        if x == False:
-            lijst = column[i - lookback: i]
-            array_2.append(np.append(lijst, 0.0))
-    kolommen = [str(i) for i in range(lookback)]
-    kolommen += ['label']
-    dataframe = pd.DataFrame(array_2, columns=kolommen)
-    return dataframe
-
-# df = data_prep3(df, 'z_velocity', 5, 1.0)
-# print(df.info)
-# print(df['label'].value_counts())
-
-
-
-
-
-
-seq_length = 250
 input_size = 1
 lr = 0.001
 num_epochs = 250
-kolom = 'z_wf'
-thres = 1.0
+max_lookback = 13
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
 
@@ -186,10 +114,11 @@ f1_array = []
 acc_array = []
 RFPR_array = []
 epoch_array = []
-array = [i for i in range(5, 31)]
-for len_interval in range(5, 31):
-    print(len_interval)
-    data = dataprep_wave(df, kolom, thres, 50.0, 50.0, len_interval)    
+array = [i for i in range(3, max_lookback)]
+for lookback in range(3, max_lookback):
+    print(lookback)
+    seq_length = lookback
+    data = data_prep3(df, 'z_wf', lookback, 0.95, 12.0, max_lookback)    
     data = data.drop_duplicates()
     print(data['label'].value_counts())
     ratio = (len(data[data['label']==0.0].index))/(len(data[data['label']==1.0].index))
@@ -240,7 +169,13 @@ for len_interval in range(5, 31):
             out = self.fc(last_hidden)
             return out.squeeze()
         
-    model = LSTMClassifier(input_size=input_size, hidden_size=(64), num_layers=3).to(device)
+
+
+
+
+
+
+    model = LSTMClassifier(input_size=input_size, hidden_size=(32), num_layers=3).to(device)
     criterion = nn.BCEWithLogitsLoss(pos_weight=ratio)
     optimizer = optim.Adam(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer,
@@ -310,14 +245,27 @@ for len_interval in range(5, 31):
     RFPR_array += [max_RFPR]
     epoch_array += [m_epoch]
 
+if pgf_plot == True:
+    fig, ax = plt.subplots(1, 1, figsize=(12, 5))
+    plt.subplots_adjust(bottom=0.15, left = 0.15, top=0.85)
+    fig.set_size_inches(w=5.5, h=3.5)
+    plt.plot(array, f1_array, label='F1')
+    plt.plot(array, acc_array, label = "Acc")
+    plt.plot(array, RFPR_array, label = "RFPR")
+    plt.xlabel('Number of extrema')
+    plt.ylabel('Acc/F1/RFPR')
+    plt.title('Acc/F1/RFPR for different number of extrema')
+    plt.legend()
+    plt.savefig(r'C:\Users\steve\OneDrive\Bureaublad\Lookbackextremaheaverate3.pgf')
 
-plt.plot(array, f1_array, label='F_1')
-plt.plot(array, acc_array, label = "acc")
-plt.plot(array, RFPR_array, label = "RFPR")
-plt.xlabel('Length of prediction window')
-plt.ylabel('Acc/F1/RFPR')
-plt.title('Acc/F1/RFPR for different prediction windows for ', str(kolom))
-plt.legend()
-# plt.savefig(r'C:\Users\steve\OneDrive\Bureaublad\Predictionwindowheaverate.pgf')
-plt.show()
+if pgf_plot == False:
+    plt.plot(array, f1_array, label='F1')
+    plt.plot(array, acc_array, label = "acc")
+    plt.plot(array, RFPR_array, label = "RFPR")
+    plt.xlabel('number of extrema')
+    plt.ylabel('Acc/F1/RFPR')
+    plt.title('Acc/F1/RFPR for different number of extrema')
+    plt.legend()
+    plt.show()
+
 print(epoch_array)
