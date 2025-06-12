@@ -118,7 +118,7 @@ acc_array = []
 RFPR_array = []
 epoch_array = []
 array = [i for i in range(5, max_prediction + 1)]
-for prediction_window in range(5, max_prediction):
+for prediction_window in range(5, max_prediction + 1):
     print(prediction_window)
     data = data_prep3(df, 'z_velocity', max_lookback, 1.0, prediction_window, max_lookback)    
     data = data.drop_duplicates()

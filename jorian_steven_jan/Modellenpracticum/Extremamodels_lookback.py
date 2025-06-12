@@ -10,7 +10,7 @@ from sklearn.metrics import f1_score
 import torch.optim.lr_scheduler as lr_scheduler
 import matplotlib
 
-pgf_plot = False
+pgf_plot = True
 
 if pgf_plot == True:
     matplotlib.use('pgf')  # Set PGF backend before importing pyplot
@@ -118,7 +118,7 @@ array = [i for i in range(3, max_lookback)]
 for lookback in range(3, max_lookback):
     print(lookback)
     seq_length = lookback
-    data = data_prep3(df, 'z_wf', lookback, 0.95, 12.0, max_lookback)    
+    data = data_prep3(df, 'z_velocity', lookback, 1.0, 12.0, max_lookback - 1)    
     data = data.drop_duplicates()
     print(data['label'].value_counts())
     ratio = (len(data[data['label']==0.0].index))/(len(data[data['label']==1.0].index))
@@ -249,14 +249,14 @@ if pgf_plot == True:
     fig, ax = plt.subplots(1, 1, figsize=(12, 5))
     plt.subplots_adjust(bottom=0.15, left = 0.15, top=0.85)
     fig.set_size_inches(w=5.5, h=3.5)
-    plt.plot(array, f1_array, label='F1')
+    plt.plot(array, f1_array, label='F1',)
     plt.plot(array, acc_array, label = "Acc")
     plt.plot(array, RFPR_array, label = "RFPR")
     plt.xlabel('Number of extrema')
     plt.ylabel('Acc/F1/RFPR')
     plt.title('Acc/F1/RFPR for different number of extrema')
     plt.legend()
-    plt.savefig(r'C:\Users\steve\OneDrive\Bureaublad\Lookbackextremaheaverate3.pgf')
+    plt.savefig(r'C:\Users\steve\OneDrive\Bureaublad\Lookbackextremaheaverategood.pgf')
 
 if pgf_plot == False:
     plt.plot(array, f1_array, label='F1')
