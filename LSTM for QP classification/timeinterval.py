@@ -292,6 +292,7 @@ for len_interval in range(5, 31):
         average = (1/3)*(fb + RFPR + Acc)
         if max_average <= average:
             max_average = average
+            max_f1 = fb
             max_acc = Acc
             max_RFPR = RFPR
             m_epoch = epoch
@@ -305,13 +306,13 @@ for len_interval in range(5, 31):
             print("TP", TP, "FN", FN, "FP", FP, "TN", TN)
     print(max_average)
     print("best epoch", m_epoch)
-    f1_array += [max_average]
+    f1_array += [max_f1]
     acc_array += [max_acc]
     RFPR_array += [max_RFPR]
     epoch_array += [m_epoch]
 
 
-plt.plot(array, f1_array, label='F_1')
+plt.plot(array, f1_array, label='F1')
 plt.plot(array, acc_array, label = "acc")
 plt.plot(array, RFPR_array, label = "RFPR")
 plt.xlabel('Length of prediction window')
