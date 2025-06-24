@@ -10,19 +10,19 @@ from sklearn.metrics import f1_score
 import torch.optim.lr_scheduler as lr_scheduler
 import matplotlib
 
-# matplotlib.use('pgf')  # Set PGF backend before importing pyplot
-# matplotlib.rcParams.update({
-#     "pgf.texsystem": "pdflatex",
-#     'font.family': 'serif',
-#     'font.size' : 8,
-#     'pgf.rcfonts': False,
-#     'text.usetex': True,
-#     'axes.titlesize': 14,
-#     'axes.labelsize': 11,
-#     'lines.linewidth' : 0.5,
-#      'lines.markersize'  : 5,
-#     'xtick.labelsize' : 8,
-#     'ytick.labelsize':8})
+matplotlib.use('pgf')  # Set PGF backend before importing pyplot
+matplotlib.rcParams.update({
+    "pgf.texsystem": "pdflatex",
+    'font.family': 'serif',
+    'font.size' : 8,
+    'pgf.rcfonts': False,
+    'text.usetex': True,
+    'axes.titlesize': 14,
+    'axes.labelsize': 11,
+    'lines.linewidth' : 0.5,
+     'lines.markersize'  : 5,
+    'xtick.labelsize' : 8,
+    'ytick.labelsize':8})
 
 
 
@@ -31,7 +31,7 @@ def f_beta(beta, TP, FP, TN, FN):
 
 
 #hier laad je de dataset in de QP start vanuit Detect_QPv2(1).py
-df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs4_data_without_units2.csv", low_memory = True, header = [0,1])
+df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\LSTM for QP classification\Hs4_data_without_units2.csv", low_memory = True, header = [0,1])
 print(len(df.index))
 
 
@@ -177,7 +177,7 @@ seq_length = 250
 input_size = 1
 lr = 0.001
 num_epochs = 250
-kolom = 'z_wf'
+kolom = 'z_velocity'
 thres = 1.0
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(device)
@@ -311,14 +311,17 @@ for len_interval in range(5, 31):
     RFPR_array += [max_RFPR]
     epoch_array += [m_epoch]
 
+fig, ax = plt.subplots(1, 1, figsize=(12, 5))
+plt.subplots_adjust(bottom=0.15, left = 0.15, top=0.85)
+fig.set_size_inches(w=5.5, h=3.5)
+
 
 plt.plot(array, f1_array, label='F1')
 plt.plot(array, acc_array, label = "acc")
 plt.plot(array, RFPR_array, label = "RFPR")
-plt.xlabel('Length of prediction window')
+plt.xlabel('Length of prediction window (s)')
 plt.ylabel('Acc/F1/RFPR')
-plt.title('Acc/F1/RFPR for different prediction windows for ', str(kolom))
+plt.title('Acc/F1/RFPR for different prediction windows for heave rate')
 plt.legend()
-# plt.savefig(r'C:\Users\steve\OneDrive\Bureaublad\Predictionwindowheaverate.pgf')
-plt.show()
+plt.savefig(r'C:\Users\steve\OneDrive\Bureaublad\Predictionwindowheaverate2222.pgf')
 print(epoch_array)

@@ -31,9 +31,8 @@ def f_beta(beta, TP, FP, TN, FN):
 
 
 #hier laad je de dataset in de QP start vanuit Detect_QPv2(1).py
-df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\jorian_steven_jan\Modellenpracticum\Hs4_data_without_units2.csv", low_memory = True, header = [0,1])
+df = pd.read_csv(r"C:\Users\steve\OneDrive\Bureaublad\VS Code\git\Modellenpracticum\LSTM for QP classification\Hs4_data_without_units2.csv", low_memory = True, header = [0,1])
 print(len(df.index))
-
 
 def dataprep_wave(df, column, threshold, time_increment, lookback_time, lookforward_time):
     steps = int(time_increment*5)
@@ -194,8 +193,9 @@ for len_lookback in range(30, 71):
         RFPR = 1 - (FP / (FP + TN + 1e-8))
         Acc = correct/total
         average = (1/3)*(fb + RFPR + Acc)
-        if max_average <= average:
+        if max_average <= average and epoch >= 8:
             max_average = average
+            max_f1 = fb
             max_acc = Acc
             max_RFPR = RFPR
             m_epoch = epoch
@@ -209,7 +209,7 @@ for len_lookback in range(30, 71):
             print("TP", TP, "FN", FN, "FP", FP, "TN", TN)
     print(max_average)
     print("best epoch", m_epoch)
-    f1_array += [max_average]
+    f1_array += [max_f1]
     acc_array += [max_acc]
     RFPR_array += [max_RFPR]
     epoch_array += [m_epoch]
@@ -219,14 +219,14 @@ for len_lookback in range(30, 71):
 fig, ax = plt.subplots(1, 1, figsize=(12, 5))
 plt.subplots_adjust(bottom=0.15, left = 0.15, top=0.85)
 fig.set_size_inches(w=5.5, h=3.5)
-plt.plot(array, f1_array, label='F_1')
+plt.plot(array, f1_array, label='F1')
 plt.plot(array, acc_array, label = "acc")
 plt.plot(array, RFPR_array, label = "RFPR")
-plt.xlabel('Length of lookback window')
+plt.xlabel('Length of lookback window (s)')
 plt.ylabel('Acc/F1/RFPR')
 plt.title('Acc/F1/RFPR for different lookback windows')
 plt.legend()
-plt.savefig(r'C:\Users\steve\OneDrive\Bureaublad\Lookbackwindowheaverate22.pgf')
+plt.savefig(r'C:\Users\steve\OneDrive\Bureaublad\Lookbackwindowheaveratewave2.pgf')
 
 
 print(epoch_array)
