@@ -5,3 +5,5 @@ assets
 onzin
 .conda
 __pycache__
+myenv
+venv
