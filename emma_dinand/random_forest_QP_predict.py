@@ -8,6 +8,7 @@ from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
 import pickle
 from sklearn.decomposition import PCA
 from emma_dinand import features
+from emma_dinand.pca_lagged_variables import create_pca_lagged_features
 from emma_dinand.extras import load_processed_data, save_processed_data
 from sklearn.model_selection import GridSearchCV
 from sklearn.metrics import accuracy_score
@@ -254,6 +255,12 @@ def train_qp_predictor(X, y):
     y_test = y[int(len(X)/5*4):]
 
 
+    # X_train = X[:int(len(X)/2)]
+    # X_test = X[int(len(X)/2):]
+    # y_train = y[:int(len(X)/2)]
+    # y_test = y[int(len(X)/2):]
+
+
     # print(np.sum(y_train), np.sum(y_test))
     # print(len(y_train), len(y_test))
     
@@ -277,45 +284,28 @@ def train_qp_predictor(X, y):
 
     custom_scorer = make_scorer(accuracy_for_true_class, greater_is_better=True)
 
-    clf = AdaBoostClassifier()
-    #     estimator=DecisionTreeClassifier(max_depth=10),  # Weak learner
-    #     n_estimators=100,  # Number of weak learners
-    #     learning_rate=0.1,  # Controls contribution of each learner
-    #     random_state=42
-    # )
+    clf = AdaBoostClassifier(
+        estimator=DecisionTreeClassifier(max_depth=10),
+        n_estimators=100,
+        learning_rate=0.1,
+        algorithm="SAMME",  # <-- ADD THIS
+        random_state=42
+    )
+
+    clf.fit(X_train_scaled, y_train)
     
 
-    param_grid = {
-        'estimator': [DecisionTreeClassifier(max_depth=20)],
-                    #   DecisionTreeClassifier(max_depth=5, min_samples_split=5), 
-                    #   DecisionTreeClassifier(max_depth=10, min_samples_split=2),
-                    #   DecisionTreeClassifier(max_depth=10, min_samples_split=5), 
-                    #   DecisionTreeClassifier(max_depth=20, min_samples_split=2),
-                    #   DecisionTreeClassifier(max_depth=20, min_samples_split=5)],
-        'n_estimators': [50],  
-    }
+
 
     
-
-    
-
-    grid_search = GridSearchCV(estimator=clf,
-                            param_grid=param_grid,
-                            cv=5,  # 5-fold cross-validation
-                            scoring=custom_scorer,
-                            n_jobs=-1,  # use all processors
-                            verbose=1)
-    grid_search.fit(X_train, y_train)
-
-    print("Best parameters:", grid_search.best_params_)
 
     # Use best estimator on test set
-    best_model = grid_search.best_estimator_
-    y_pred = best_model.predict(X_test)
+    
+    y_pred = clf.predict(X_test)
 
     print("Test accuracy:", accuracy_score(y_test, y_pred))
 
-    return best_model, scaler, X_test, y_test
+    return clf, scaler, X_test, y_test
 
 
 def evaluate(model, scaler, X, y):
@@ -397,7 +387,18 @@ def main():
     X = Xs[index]
     y = ys[index]
 
-    model, scaler, X_test, y_test = model_train(X, y, id = index, new=False)
+    
+    lag_periods = 5
+    X_lagged, _ = create_pca_lagged_features(X, y, variance_threshold=0.95, lag_periods=lag_periods)
+    y = y[lag_periods:]
+    X = X_lagged.copy()
+
+    X = X.drop(columns=['y'])
+    print(X.shape)
+    print(X.iloc[5])
+    # quit()
+    
+    model, scaler, X_test, y_test = model_train(X, y, id = index, new=True)
     
     
     evaluate(model, scaler, X_test, y_test)

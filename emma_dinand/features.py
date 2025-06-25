@@ -235,7 +235,7 @@ def load_processed_data(file_path):
         return pickle.load(f)
     
 
-def init(to_log=True):
+def init(to_log=True, extrema=True):
     base_path_data = Path("assets")
     base_saved_data_path = Path("emma_dinand/pickle_saves/data")
 
@@ -307,28 +307,23 @@ def init(to_log=True):
         print(f"amount QPs in data5 {sum(y5)}, total amount of data {len(y5)}")
     
     
+
+    if extrema:
+        Xs, ys = all_features(data1, None, data3, data4, data5, start_index1, stop_index1, start_index3, stop_index3, start_index4, stop_index4, start_index5, stop_index5)
+        return Xs, ys
+    
+
+    return [data1.data,  None, data3.data, data4.data, data5.data ], [y,None, y3, y4, y5]
+
+def all_features(data1, data2, data3, data4, data5, y, y2, y3, y4, y5, start_index1, stop_index1, start_index2, stop_index2, start_index3, stop_index3, start_index4, stop_index4, start_index5, stop_index5):
+    
+
     X, offset1 = build_features(data1.data[start_index1:stop_index1], dataset_id=1, new=False)
-
-    
-
     # X2, offset2 = build_features(data2.data[start_index2:stop_index2], dataset_id=2, new=False)
-
-    
-
-
     X3, offset3 = build_features(data3.data[start_index3:stop_index3], dataset_id=3, new=False)
-
-    
-    
-
-
     X4, offset4 = build_features(data4.data[start_index4:stop_index4], dataset_id=4, new=False)
     X5, offset5 = build_features(data5.data[start_index5:stop_index5], dataset_id=5, new=False)
 
-    
-
-
-    
     
     y  = y[start_index1+offset1:len(X)+(start_index1+offset1)]
 
@@ -340,11 +335,10 @@ def init(to_log=True):
 
     y5 = y5[start_index5+offset5:len(X5)+start_index5+offset5]
 
-    return [X,  None, X3, X4, X5], [y,None, y3, y4, y5]
-
+    return [X, None, X3, X4, X5], [y, None, y3, y4, y5]
 
 def main():
-    Xs, ys = init()
+    Xs, ys = init(to_log=False, extrema=False)
     
     return Xs, ys
 
